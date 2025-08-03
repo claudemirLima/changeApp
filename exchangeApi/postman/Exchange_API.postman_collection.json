@@ -1,0 +1,292 @@
+{
+  "info": {
+    "name": "Exchange API - Reino SRM",
+    "description": "Collection para a API de conversão de moedas do reino SRM",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8081",
+      "type": "string"
+    },
+    {
+      "key": "apiVersion",
+      "value": "v1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "health"]
+            }
+          }
+        },
+        {
+          "name": "Status Detalhado",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/status",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Conversão de Moedas",
+      "item": [
+        {
+          "name": "Converter Moeda",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromCurrencyCode\": \"ORO\",\n  \"toCurrencyCode\": \"TIB\",\n  \"amount\": 100.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/convert",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "convert"]
+            }
+          }
+        },
+        {
+          "name": "Converter Moeda por Produto",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromCurrencyCode\": \"ORO\",\n  \"toCurrencyCode\": \"TIB\",\n  \"amount\": 100.00,\n  \"productId\": 1,\n  \"conversionDate\": \"2024-01-15\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/convert/product",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "convert", "product"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Taxas de Câmbio",
+      "item": [
+        {
+          "name": "Listar Taxas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/exchange-rates?page=0&size=20&activeOnly=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "exchange-rates"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                },
+                {
+                  "key": "activeOnly",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar Taxa Específica",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/exchange-rates/ORO/TIB",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "exchange-rates", "ORO", "TIB"]
+            }
+          }
+        },
+        {
+          "name": "Criar Taxa",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromCurrencyCode\": \"ORO\",\n  \"toCurrencyCode\": \"TIB\",\n  \"rate\": 2.5,\n  \"effectiveDate\": \"2024-01-15\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/exchange-rates",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "exchange-rates"]
+            }
+          }
+        },
+        {
+          "name": "Atualizar Taxa",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromCurrencyCode\": \"ORO\",\n  \"toCurrencyCode\": \"TIB\",\n  \"rate\": 2.6,\n  \"effectiveDate\": \"2024-01-15\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/exchange-rates/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "exchange-rates", "1"]
+            }
+          }
+        },
+        {
+          "name": "Desativar Taxa",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/exchange-rates/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "exchange-rates", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Moedas",
+      "item": [
+        {
+          "name": "Listar Moedas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/currencies?page=0&size=20&activeOnly=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "currencies"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                },
+                {
+                  "key": "activeOnly",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar Moeda",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/currencies/ORO",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "currencies", "ORO"]
+            }
+          }
+        },
+        {
+          "name": "Criar Moeda",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"TIB\",\n  \"name\": \"Tibar\",\n  \"description\": \"Moeda dos anões\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/currencies",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "currencies"]
+            }
+          }
+        },
+        {
+          "name": "Atualizar Moeda",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"ORO\",\n  \"name\": \"Ouro Real\",\n  \"description\": \"Moeda oficial do reino SRM\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/currencies/ORO",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "currencies", "ORO"]
+            }
+          }
+        },
+        {
+          "name": "Desativar Moeda",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/{{apiVersion}}/currencies/TIB",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "{{apiVersion}}", "currencies", "TIB"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+} 

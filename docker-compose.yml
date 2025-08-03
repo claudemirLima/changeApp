@@ -1,0 +1,181 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database (Único container com múltiplas instâncias)
+  postgres:
+    image: postgres:15-alpine
+    container_name: changeapp-postgres
+    environment:
+      POSTGRES_DB: changeapp
+      POSTGRES_USER: changeapp
+      POSTGRES_PASSWORD: changeapp123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - changeapp-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U changeapp -d changeapp"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # MongoDB Database para TransactionApi
+  mongodb:
+    image: mongo:7.0
+    container_name: changeapp-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: changeapp
+      MONGO_INITDB_ROOT_PASSWORD: changeapp123
+      MONGO_INITDB_DATABASE: changeapp_transactions
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./transactionApi/src/main/resources/db/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    networks:
+      - changeapp-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: changeapp-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - changeapp-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ExchangeApi
+  exchange-api:
+    build:
+      context: ./exchangeApi
+      dockerfile: Dockerfile
+    container_name: changeapp-exchange-api
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: prd
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/changeapp
+      SPRING_DATASOURCE_USERNAME: changeapp
+      SPRING_DATASOURCE_PASSWORD: changeapp123
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      JAVA_OPTS: "-Xmx512m -Xms256m"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - changeapp-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # TransactionApi
+  transaction-api:
+    build:
+      context: ./transactionApi
+      dockerfile: Dockerfile
+    container_name: changeapp-transaction-api
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: prd
+      SPRING_DATA_MONGODB_HOST: mongodb
+      SPRING_DATA_MONGODB_PORT: 27017
+      SPRING_DATA_MONGODB_DATABASE: changeapp_transactions
+      SPRING_DATA_MONGODB_USERNAME: changeapp
+      SPRING_DATA_MONGODB_PASSWORD: changeapp123
+      SPRING_DATA_MONGODB_AUTHENTICATION_DATABASE: admin
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      JAVA_OPTS: "-Xmx512m -Xms256m"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - changeapp-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # ManagerProductApi
+  manager-product-api:
+    build:
+      context: ./managerProductApi
+      dockerfile: Dockerfile
+    container_name: changeapp-manager-product-api
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: prd
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/changeapp_product
+      SPRING_DATASOURCE_USERNAME: changeapp
+      SPRING_DATASOURCE_PASSWORD: changeapp123
+      JAVA_OPTS: "-Xmx512m -Xms256m"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - changeapp-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Nginx Reverse Proxy (Opcional)
+  nginx:
+    image: nginx:alpine
+    container_name: changeapp-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - exchange-api
+      - transaction-api
+      - manager-product-api
+    networks:
+      - changeapp-network
+
+volumes:
+  postgres_data:
+    driver: local
+  mongodb_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  changeapp-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16 

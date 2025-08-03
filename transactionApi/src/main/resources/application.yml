@@ -1,0 +1,129 @@
+spring:
+  application:
+    name: transaction-api
+  profiles:
+    active: dev
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: changeapp_transactions
+  redis:
+    host: localhost
+    port: 6379
+
+server:
+  port: 8082
+
+logging:
+  level:
+    com.transaction: INFO
+    org.springframework.web: INFO
+    org.springframework.data.mongodb: INFO
+
+# OpenAPI/Swagger Configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    doc-expansion: none
+  packages-to-scan: com.transaction.controller
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: changeapp_transactions_dev
+  redis:
+    host: localhost
+    port: 6379
+
+server:
+  port: 8082
+
+logging:
+  level:
+    com.transaction: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.data.mongodb: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: changeapp_transactions_test
+  redis:
+    host: localhost
+    port: 6379
+
+server:
+  port: 8082
+
+logging:
+  level:
+    com.transaction: INFO
+    org.springframework.web: WARN
+    org.springframework.data.mongodb: WARN
+
+---
+spring:
+  config:
+    activate:
+      on-profile: hm
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: changeapp_transactions_hm
+  redis:
+    host: localhost
+    port: 6379
+
+server:
+  port: 8082
+
+logging:
+  level:
+    com.transaction: INFO
+    org.springframework.web: INFO
+    org.springframework.data.mongodb: WARN
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prd
+  data:
+    mongodb:
+      host: ${MONGODB_HOST:localhost}
+      port: ${MONGODB_PORT:27017}
+      database: ${MONGODB_DATABASE:changeapp_transactions}
+      username: ${MONGODB_USERNAME:}
+      password: ${MONGODB_PASSWORD:}
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+
+server:
+  port: ${SERVER_PORT:8082}
+
+logging:
+  level:
+    com.transaction: WARN
+    org.springframework.web: WARN
+    org.springframework.data.mongodb: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n" 
