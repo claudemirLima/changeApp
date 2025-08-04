@@ -15,9 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ExchangeRateServiceImpl implements ExchangeRateService {
@@ -32,13 +31,30 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
     
     @Override
     @Transactional(readOnly = true)
-    public ExchangeRate getActiveRate(String fromCurrencyPrefix, String toCurrencyPrefix, LocalDate effectiveDate) {
+    public ExchangeRate getActiveRate(String fromCurrencyPrefix, String toCurrencyPrefix) {
         // Validar se as moedas existem
         currencyService.getActiveCurrencyByPrefix(fromCurrencyPrefix);
         currencyService.getActiveCurrencyByPrefix(toCurrencyPrefix);
         
-        return exchangeRateRepository.findActiveByPrefixesAndDate(fromCurrencyPrefix, toCurrencyPrefix, effectiveDate)
-            .orElseGet(() -> getLatestActiveRate(fromCurrencyPrefix, toCurrencyPrefix));
+        return exchangeRateRepository.findLatestActiveByPrefixes(fromCurrencyPrefix, toCurrencyPrefix)
+            .orElseThrow(() -> new ExchangeRateNotFoundException(
+                "Taxa de câmbio não encontrada para " + fromCurrencyPrefix + " → " + toCurrencyPrefix
+            ));
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<ExchangeRate> findActiveRate(String fromCurrencyPrefix, String toCurrencyPrefix) {
+        try {
+            // Validar se as moedas existem
+            currencyService.getActiveCurrencyByPrefix(fromCurrencyPrefix);
+            currencyService.getActiveCurrencyByPrefix(toCurrencyPrefix);
+            
+            return exchangeRateRepository.findLatestActiveByPrefixes(fromCurrencyPrefix, toCurrencyPrefix);
+        } catch (Exception e) {
+            // Se as moedas não existem, retorna Optional vazio
+            return Optional.empty();
+        }
     }
     
     @Override
@@ -52,8 +68,7 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
     
     @Override
     @Transactional
-    public ExchangeRate saveRate(String fromCurrencyPrefix, String toCurrencyPrefix, 
-                               BigDecimal rate, LocalDate effectiveDate) {
+    public ExchangeRate saveRate(String fromCurrencyPrefix, String toCurrencyPrefix, BigDecimal rate) {
         // Validar se as moedas existem
         currencyService.getActiveCurrencyByPrefix(fromCurrencyPrefix);
         currencyService.getActiveCurrencyByPrefix(toCurrencyPrefix);
@@ -61,11 +76,10 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
         // Validar taxa
         validateRate(rate);
         
-        // Verificar se já existe taxa ativa para esta data
-        if (exchangeRateRepository.existsActiveByPrefixesAndDate(fromCurrencyPrefix, toCurrencyPrefix, effectiveDate)) {
+        // Verificar se já existe taxa ativa
+        if (exchangeRateRepository.findLatestActiveByPrefixes(fromCurrencyPrefix, toCurrencyPrefix).isPresent()) {
             throw new ExchangeRateAlreadyExistsException(
-                "Já existe uma taxa ativa para " + fromCurrencyPrefix + " → " + toCurrencyPrefix + 
-                " na data " + effectiveDate
+                "Já existe uma taxa ativa para " + fromCurrencyPrefix + " → " + toCurrencyPrefix
             );
         }
         
@@ -73,7 +87,6 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
         exchangeRate.setFromCurrencyPrefix(fromCurrencyPrefix);
         exchangeRate.setToCurrencyPrefix(toCurrencyPrefix);
         exchangeRate.setRate(rate);
-        exchangeRate.setEffectiveDate(effectiveDate);
         exchangeRate.setIsActive(true);
         exchangeRate.setDeactivatedAt(null);
         
@@ -82,15 +95,44 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
     
     @Override
     @Transactional
-    public void deactivateRate(String fromCurrencyPrefix, String toCurrencyPrefix, LocalDate effectiveDate) {
-        ExchangeRate activeRate = getActiveRate(fromCurrencyPrefix, toCurrencyPrefix, effectiveDate);
+    public ExchangeRate updateRate(String fromCurrencyPrefix, String toCurrencyPrefix, 
+                                 BigDecimal rate, Boolean isActive) {
+        // Validar se as moedas existem
+        currencyService.getActiveCurrencyByPrefix(fromCurrencyPrefix);
+        currencyService.getActiveCurrencyByPrefix(toCurrencyPrefix);
+        
+        // Validar taxa
+        validateRate(rate);
+        
+        // Buscar taxa existente
+        ExchangeRate existingRate = getActiveRate(fromCurrencyPrefix, toCurrencyPrefix);
+
+        try {
+            // Desativar taxa anterior
+            existingRate.setIsActive(isActive != null ? isActive : true);
+            existingRate.setDeactivatedAt(isActive != null && !isActive ? LocalDateTime.now() : null);
+            existingRate.setRate(rate);
+            existingRate.setDeactivatedAt(LocalDateTime.now());
+            exchangeRateRepository.save(existingRate);
+            
+            // Salvar nova taxa
+            return exchangeRateRepository.save(existingRate);
+            
+        } catch (DataIntegrityViolationException e) {
+            throw new ExchangeRateOperationException("Erro ao atualizar taxa de câmbio: " + e.getMessage());
+        }
+    }
+    
+    @Override
+    @Transactional
+    public void deactivateRate(String fromCurrencyPrefix, String toCurrencyPrefix) {
+        ExchangeRate activeRate = getActiveRate(fromCurrencyPrefix, toCurrencyPrefix);
         
         // Criar nova entrada inativa
         ExchangeRate inactiveRate = new ExchangeRate();
         inactiveRate.setFromCurrencyPrefix(activeRate.getFromCurrencyPrefix());
         inactiveRate.setToCurrencyPrefix(activeRate.getToCurrencyPrefix());
         inactiveRate.setRate(activeRate.getRate());
-        inactiveRate.setEffectiveDate(activeRate.getEffectiveDate());
         inactiveRate.setIsActive(false);
         inactiveRate.setDeactivatedAt(LocalDateTime.now());
         
@@ -98,13 +140,13 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
             // Salvar versão inativa
             exchangeRateRepository.save(inactiveRate);
             
-            // Remover versão ativa
-            exchangeRateRepository.delete(activeRate);
+            // Desativar versão ativa
+            activeRate.setIsActive(false);
+            activeRate.setDeactivatedAt(LocalDateTime.now());
+            exchangeRateRepository.save(activeRate);
             
         } catch (DataIntegrityViolationException e) {
-            throw new ExchangeRateOperationException(
-                "Erro ao desativar taxa de câmbio"
-            );
+            throw new ExchangeRateOperationException("Erro ao desativar taxa de câmbio: " + e.getMessage());
         }
     }
     
@@ -116,71 +158,14 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
     
     @Override
     @Transactional(readOnly = true)
-    public List<ExchangeRate> getRatesByPeriod(String fromCurrencyPrefix, String toCurrencyPrefix, 
-                                             LocalDate startDate, LocalDate endDate) {
-        return exchangeRateRepository.findActiveByPrefixesAndPeriod(fromCurrencyPrefix, toCurrencyPrefix, startDate, endDate);
-    }
-    
-    // ===== MÉTODOS CUSTOMIZADOS =====
-    
-    @Override
-    @Transactional(readOnly = true)
     public Page<ExchangeRate> getExchangeRatesWithFilters(String fromPrefix, String toPrefix, 
-                                                        LocalDate startDate, LocalDate endDate, 
                                                         Boolean activeOnly, Pageable pageable) {
-        return exchangeRateRepository.findExchangeRatesWithFilters(fromPrefix, toPrefix, startDate, endDate, activeOnly, pageable);
+        return exchangeRateRepository.findExchangeRatesWithFilters(fromPrefix, toPrefix, activeOnly, pageable);
     }
     
-    @Override
-    @Transactional(readOnly = true)
-    public List<ExchangeRate> getRateHistory(String fromPrefix, String toPrefix, 
-                                           LocalDate startDate, LocalDate endDate) {
-        return exchangeRateRepository.findRateHistory(fromPrefix, toPrefix, startDate, endDate);
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public Double getAverageRate(String fromPrefix, String toPrefix, 
-                               LocalDate startDate, LocalDate endDate) {
-        return exchangeRateRepository.findAverageRate(fromPrefix, toPrefix, startDate, endDate);
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public Double getMinRate(String fromPrefix, String toPrefix, 
-                           LocalDate startDate, LocalDate endDate) {
-        return exchangeRateRepository.findMinRate(fromPrefix, toPrefix, startDate, endDate);
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public Double getMaxRate(String fromPrefix, String toPrefix, 
-                           LocalDate startDate, LocalDate endDate) {
-        return exchangeRateRepository.findMaxRate(fromPrefix, toPrefix, startDate, endDate);
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<ExchangeRate> getRatesWithSignificantVariation(String fromPrefix, String toPrefix, 
-                                                             Double variationThreshold,
-                                                             LocalDate startDate, LocalDate endDate) {
-        return exchangeRateRepository.findRatesWithSignificantVariation(fromPrefix, toPrefix, variationThreshold, startDate, endDate);
-    }
-    
-    // ===== MÉTODOS PRIVADOS =====
-    
-    // Validações
     private void validateRate(BigDecimal rate) {
-        if (rate == null) {
-            throw new IllegalArgumentException("Taxa de câmbio não pode ser nula");
-        }
-        
-        if (rate.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Taxa de câmbio deve ser maior que zero");
-        }
-        
-        if (rate.compareTo(new BigDecimal("1000000")) > 0) {
-            throw new IllegalArgumentException("Taxa de câmbio muito alta");
+        if (rate == null || rate.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Taxa deve ser maior que zero");
         }
     }
 } 

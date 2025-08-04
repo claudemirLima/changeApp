@@ -62,6 +62,17 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
     
     @Override
+    @Transactional(readOnly = true)
+    public Optional<CurrencyInfo> findCurrencyByPrefix(String prefix) {
+        try {
+            Optional<Currency> currencyOpt = currencyRepository.findByPrefixAndIsActiveTrue(prefix);
+            return currencyOpt.map(this::convertToCurrencyInfo);
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
+    
+    @Override
     @Transactional
     public CurrencyInfo createCurrency(CurrencyInfo currencyInfo) {
         Currency currency = new Currency();

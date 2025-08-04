@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.io.Serializable;
-import java.time.LocalDate;
 
 @Embeddable
 @Data
@@ -19,9 +18,6 @@ public class ExchangeRateId implements Serializable {
     
     @Column(name = "to_currency_prefix", nullable = false, length = 10)
     private String toCurrencyPrefix;
-    
-    @Column(name = "effective_date", nullable = false)
-    private LocalDate effectiveDate;
     
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;

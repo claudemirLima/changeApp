@@ -13,8 +13,6 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -34,8 +32,7 @@ public class ProductConversionStrategy implements ConversionStrategy {
         // Buscar taxa de câmbio base
         ExchangeRate baseRate = exchangeRateService.getActiveRate(
             request.getFromCurrencyCode(), 
-            request.getToCurrencyCode(), 
-            request.getConversionDate() != null ? request.getConversionDate() : LocalDate.now()
+            request.getToCurrencyCode()
         );
         
         if (baseRate == null) {
@@ -46,8 +43,7 @@ public class ProductConversionStrategy implements ConversionStrategy {
         ProductExchangeRate productRate = productExchangeRateService.getActiveProductRate(
             request.getProductId(),
             request.getFromCurrencyCode(),
-            request.getToCurrencyCode(),
-            request.getConversionDate() != null ? request.getConversionDate() : LocalDate.now()
+            request.getToCurrencyCode()
         );
         
         BigDecimal finalRate = baseRate.getRate();
@@ -82,15 +78,13 @@ public class ProductConversionStrategy implements ConversionStrategy {
     @Override
     public boolean supports(ConversionRequest request) {
         // Estratégia de produto suporta conversões com productId
-        return request.getProductId() != null;
+        return request.getProductId() != null && request.getProductId() > 0;
     }
     
     @Override
     public int getPriority() {
         return 50; // Prioridade média - mais específica que a padrão
     }
-    
-
     
     private ConversionResponse createErrorResponse(String reason) {
         ConversionResponse response = new ConversionResponse();

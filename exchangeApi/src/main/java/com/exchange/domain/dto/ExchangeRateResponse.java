@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -16,7 +15,6 @@ public class ExchangeRateResponse {
     private CurrencyInfo fromCurrency;
     private CurrencyInfo toCurrency;
     private BigDecimal rate;
-    private LocalDate effectiveDate;
     private LocalDateTime lastUpdated;
     
     // Guard Rail
@@ -28,11 +26,10 @@ public class ExchangeRateResponse {
     
     // Construtor customizado
     public ExchangeRateResponse(CurrencyInfo fromCurrency, CurrencyInfo toCurrency, BigDecimal rate, 
-                               LocalDate effectiveDate, LocalDateTime lastUpdated) {
+                               LocalDateTime lastUpdated) {
         this.fromCurrency = fromCurrency;
         this.toCurrency = toCurrency;
         this.rate = rate;
-        this.effectiveDate = effectiveDate;
         this.lastUpdated = lastUpdated;
     }
 } 

@@ -23,6 +23,11 @@ public interface CurrencyService {
     CurrencyInfo getCurrencyByPrefix(String prefix);
     
     /**
+     * Busca moeda ativa por prefix (retorna Optional)
+     */
+    Optional<CurrencyInfo> findCurrencyByPrefix(String prefix);
+    
+    /**
      * Cria nova moeda
      */
     CurrencyInfo createCurrency(CurrencyInfo currencyInfo);

@@ -17,6 +17,8 @@ spring:
     baseline-on-migrate: true
     validate-on-migrate: true
     clean-disabled: false
+    out-of-order: false
+    ignore-migration-patterns: "*:missing"
   redis:
     host: localhost
     port: 6379
@@ -67,6 +69,16 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    create-schemas: true
+    schemas: public
+    default-schema: public
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    clean-disabled: false
+    out-of-order: false
+    ignore-migration-patterns: "*:missing"
 
 server:
   port: 8081
@@ -95,6 +107,16 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    create-schemas: true
+    schemas: public
+    default-schema: public
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    clean-disabled: false
+    out-of-order: false
+    ignore-migration-patterns: "*:missing"
 
 server:
   port: 8081
@@ -103,66 +125,4 @@ logging:
   level:
     com.exchange: INFO
     org.springframework.web: WARN
-    org.hibernate.SQL: WARN
-
----
-spring:
-  config:
-    activate:
-      on-profile: hm
-  datasource:
-    url: jdbc:postgresql://localhost:5432/changeapp_hm
-    username: changeapp
-    password: changeapp123
-    driver-class-name: org.postgresql.Driver
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    show-sql: false
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-
-server:
-  port: 8081
-
-logging:
-  level:
-    com.exchange: INFO
-    org.springframework.web: INFO
-    org.hibernate.SQL: WARN
-
----
-spring:
-  config:
-    activate:
-      on-profile: prd
-  datasource:
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:changeapp}
-    username: ${DB_USERNAME:changeapp}
-    password: ${DB_PASSWORD:changeapp123}
-    driver-class-name: org.postgresql.Driver
-    hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
-      connection-timeout: 30000
-  jpa:
-    hibernate:
-      ddl-auto: validate
-    show-sql: false
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        jdbc:
-          batch_size: 20
-
-server:
-  port: ${SERVER_PORT:8081}
-
-logging:
-  level:
-    com.exchange: WARN
-    org.springframework.web: WARN
-    org.hibernate.SQL: WARN
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n" 
+    org.hibernate.SQL: WARN 

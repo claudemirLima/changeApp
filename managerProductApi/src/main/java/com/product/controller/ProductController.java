@@ -22,6 +22,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -109,10 +110,10 @@ public class ProductController {
         @ApiResponse(responseCode = "200", description = "Lista de produtos retornada com sucesso")
     })
     public ResponseEntity<Page<ProductResponse>> getAllProducts(
-            @Parameter(description = "Número da página (0-based)") @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Tamanho da página") @RequestParam(defaultValue = "10") int size,
-            @Parameter(description = "Campo para ordenação") @RequestParam(defaultValue = "name") String sortBy,
-            @Parameter(description = "Direção da ordenação") @RequestParam(defaultValue = "ASC") String sortDir) {
+            @Parameter(description = "Número da página (0-based)") @RequestParam(value = "page", defaultValue = "0") int page,
+            @Parameter(description = "Tamanho da página") @RequestParam(value = "size", defaultValue = "10") int size,
+            @Parameter(description = "Campo para ordenação") @RequestParam(value = "sortBy", defaultValue = "name") String sortBy,
+            @Parameter(description = "Direção da ordenação") @RequestParam(value = "sortDir", defaultValue = "ASC") String sortDir) {
         
         Sort.Direction direction = Sort.Direction.fromString(sortDir.toUpperCase());
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
@@ -215,11 +216,11 @@ public class ProductController {
         @ApiResponse(responseCode = "200", description = "Lista de produtos retornada com sucesso")
     })
     public ResponseEntity<List<ProductResponse>> getProductsByValueRange(
-            @Parameter(description = "Valor mínimo") @RequestParam(defaultValue = "0") Double minValue,
-            @Parameter(description = "Valor máximo") @RequestParam(defaultValue = "9999999") Double maxValue) {
+            @Parameter(description = "Valor mínimo") @RequestParam(value = "minValue", defaultValue = "0") Double minValue,
+            @Parameter(description = "Valor máximo") @RequestParam(value = "maxValue", defaultValue = "9999999") Double maxValue) {
         
         List<Product> products = productService.getProductsByFinalValueRange(
-            minValue, maxValue);
+            BigDecimal.valueOf(minValue), BigDecimal.valueOf(maxValue));
         
         List<ProductResponse> responses = ProductMapper.productListToProductResponseList(products);
         return ResponseEntity.ok(responses);

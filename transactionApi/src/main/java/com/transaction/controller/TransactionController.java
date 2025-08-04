@@ -59,10 +59,10 @@ public class TransactionController {
     @GetMapping
     @Operation(summary = "Listar transações", description = "Lista todas as transações com paginação e filtros")
     public ResponseEntity<Page<TransactionResponse>> getAllTransactions(
-            @Parameter(description = "Número da página") @RequestParam(defaultValue = "0") int page,
-            @Parameter(description = "Tamanho da página") @RequestParam(defaultValue = "20") int size,
-            @Parameter(description = "Campo para ordenação") @RequestParam(defaultValue = "createdAt") String sortBy,
-            @Parameter(description = "Direção da ordenação") @RequestParam(defaultValue = "DESC") String sortDirection) {
+            @Parameter(description = "Número da página") @RequestParam(value = "page", defaultValue = "0") int page,
+            @Parameter(description = "Tamanho da página") @RequestParam(value = "size", defaultValue = "20") int size,
+            @Parameter(description = "Campo para ordenação") @RequestParam(value = "sortBy", defaultValue = "createdAt") String sortBy,
+            @Parameter(description = "Direção da ordenação") @RequestParam(value = "sortDirection", defaultValue = "DESC") String sortDirection) {
         
         log.debug("Listando transações - página: {}, tamanho: {}", page, size);
         
@@ -197,8 +197,8 @@ public class TransactionController {
     @GetMapping("/amount/range")
     @Operation(summary = "Buscar por faixa de valor", description = "Lista transações por faixa de valor")
     public ResponseEntity<List<TransactionResponse>> getTransactionsByAmountRange(
-            @Parameter(description = "Valor mínimo") @RequestParam BigDecimal minAmount,
-            @Parameter(description = "Valor máximo") @RequestParam BigDecimal maxAmount) {
+            @Parameter(description = "Valor mínimo") @RequestParam(value = "minAmount") BigDecimal minAmount,
+            @Parameter(description = "Valor máximo") @RequestParam(value = "maxAmount") BigDecimal maxAmount) {
         log.debug("Buscando transações por faixa de valor: {} até {}", minAmount, maxAmount);
         
         List<TransactionResponse> transactions = transactionService.getTransactionsByAmountRange(minAmount, maxAmount);

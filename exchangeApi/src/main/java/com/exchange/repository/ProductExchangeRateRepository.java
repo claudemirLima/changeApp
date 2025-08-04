@@ -21,12 +21,12 @@ public interface ProductExchangeRateRepository extends JpaRepository<ProductExch
      */
     @Query(value = "SELECT * FROM product_exchange_rates WHERE product_id = :productId " +
                    "AND from_currency_prefix = :fromPrefix AND to_currency_prefix = :toPrefix " +
-                   "AND effective_date = :effectiveDate AND is_active = true", nativeQuery = true)
+                   "AND created_at = :createdAt AND is_active = true", nativeQuery = true)
     Optional<ProductExchangeRate> findActiveByProductAndPrefixesAndDate(
         @Param("productId") Long productId,
         @Param("fromPrefix") String fromPrefix,
         @Param("toPrefix") String toPrefix,
-        @Param("effectiveDate") LocalDate effectiveDate
+        @Param("createdAt") LocalDate createdAt
     );
     
     /**
@@ -34,7 +34,7 @@ public interface ProductExchangeRateRepository extends JpaRepository<ProductExch
      */
     @Query(value = "SELECT * FROM product_exchange_rates WHERE product_id = :productId " +
                    "AND from_currency_prefix = :fromPrefix AND to_currency_prefix = :toPrefix " +
-                   "AND is_active = true ORDER BY effective_date DESC LIMIT 1", nativeQuery = true)
+                   "AND is_active = true ORDER BY created_at DESC LIMIT 1", nativeQuery = true)
     Optional<ProductExchangeRate> findLatestActiveByProductAndPrefixes(
         @Param("productId") Long productId,
         @Param("fromPrefix") String fromPrefix,
@@ -45,14 +45,14 @@ public interface ProductExchangeRateRepository extends JpaRepository<ProductExch
      * Listar taxas ativas por produto
      */
     @Query(value = "SELECT * FROM product_exchange_rates WHERE product_id = :productId " +
-                   "AND is_active = true ORDER BY effective_date DESC", nativeQuery = true)
+                   "AND is_active = true ORDER BY created_at DESC", nativeQuery = true)
     List<ProductExchangeRate> findActiveByProductId(@Param("productId") Long productId);
     
     /**
      * Listar taxas por produto com paginação
      */
     @Query(value = "SELECT * FROM product_exchange_rates WHERE product_id = :productId " +
-                   "ORDER BY effective_date DESC", nativeQuery = true)
+                   "ORDER BY created_at DESC", nativeQuery = true)
     Page<ProductExchangeRate> findByProductIdWithPagination(
         @Param("productId") Long productId, Pageable pageable);
     
@@ -60,7 +60,7 @@ public interface ProductExchangeRateRepository extends JpaRepository<ProductExch
      * Listar taxas ativas com paginação
      */
     @Query(value = "SELECT * FROM product_exchange_rates WHERE is_active = true " +
-                   "ORDER BY effective_date DESC", nativeQuery = true)
+                   "ORDER BY created_at DESC", nativeQuery = true)
     Page<ProductExchangeRate> findActiveWithPagination(Pageable pageable);
     
     /**
@@ -68,8 +68,8 @@ public interface ProductExchangeRateRepository extends JpaRepository<ProductExch
      */
     @Query(value = "SELECT * FROM product_exchange_rates WHERE product_id = :productId " +
                    "AND from_currency_prefix = :fromPrefix AND to_currency_prefix = :toPrefix " +
-                   "AND is_active = true AND effective_date BETWEEN :startDate AND :endDate " +
-                   "ORDER BY effective_date DESC", nativeQuery = true)
+                   "AND is_active = true AND created_at BETWEEN :startDate AND :endDate " +
+                   "ORDER BY created_at DESC", nativeQuery = true)
     List<ProductExchangeRate> findActiveByProductAndPrefixesAndPeriod(
         @Param("productId") Long productId,
         @Param("fromPrefix") String fromPrefix,
@@ -83,12 +83,12 @@ public interface ProductExchangeRateRepository extends JpaRepository<ProductExch
      */
     @Query(value = "SELECT COUNT(*) > 0 FROM product_exchange_rates WHERE product_id = :productId " +
                    "AND from_currency_prefix = :fromPrefix AND to_currency_prefix = :toPrefix " +
-                   "AND effective_date = :effectiveDate AND is_active = true", nativeQuery = true)
+                   "AND created_at = :createdAt AND is_active = true", nativeQuery = true)
     boolean existsActiveByProductAndPrefixesAndDate(
         @Param("productId") Long productId,
         @Param("fromPrefix") String fromPrefix,
         @Param("toPrefix") String toPrefix,
-        @Param("effectiveDate") LocalDate effectiveDate
+        @Param("createdAt") LocalDate createdAt
     );
     
     /**

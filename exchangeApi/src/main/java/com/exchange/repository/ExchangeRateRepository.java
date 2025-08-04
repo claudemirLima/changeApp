@@ -22,12 +22,12 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRate, Exch
      * Buscar taxa ativa por prefix e data
      */
     @Query(value = "SELECT * FROM exchange_rates WHERE from_currency_prefix = :fromPrefix " +
-                   "AND to_currency_prefix = :toPrefix AND effective_date = :effectiveDate " +
+                   "AND to_currency_prefix = :toPrefix AND created_at = :createdAt " +
                    "AND is_active = true", nativeQuery = true)
     Optional<ExchangeRate> findActiveByPrefixesAndDate(
         @Param("fromPrefix") String fromPrefix,
         @Param("toPrefix") String toPrefix,
-        @Param("effectiveDate") LocalDate effectiveDate
+        @Param("createdAt") LocalDate createdAt
     );
     
     /**
@@ -35,7 +35,7 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRate, Exch
      */
     @Query(value = "SELECT * FROM exchange_rates WHERE from_currency_prefix = :fromPrefix " +
                    "AND to_currency_prefix = :toPrefix AND is_active = true " +
-                   "ORDER BY effective_date DESC LIMIT 1", nativeQuery = true)
+                   "ORDER BY created_at DESC LIMIT 1", nativeQuery = true)
     Optional<ExchangeRate> findLatestActiveByPrefixes(
         @Param("fromPrefix") String fromPrefix,
         @Param("toPrefix") String toPrefix
@@ -45,7 +45,7 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRate, Exch
      * Listar taxas ativas com paginação
      */
     @Query(value = "SELECT * FROM exchange_rates WHERE is_active = true " +
-                   "ORDER BY effective_date DESC", nativeQuery = true)
+                   "ORDER BY created_at DESC", nativeQuery = true)
     Page<ExchangeRate> findActiveWithPagination(Pageable pageable);
     
     /**
@@ -53,8 +53,8 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRate, Exch
      */
     @Query(value = "SELECT * FROM exchange_rates WHERE from_currency_prefix = :fromPrefix " +
                    "AND to_currency_prefix = :toPrefix AND is_active = true " +
-                   "AND effective_date BETWEEN :startDate AND :endDate " +
-                   "ORDER BY effective_date DESC", nativeQuery = true)
+                   "AND created_at BETWEEN :startDate AND :endDate " +
+                   "ORDER BY created_at DESC", nativeQuery = true)
     List<ExchangeRate> findActiveByPrefixesAndPeriod(
         @Param("fromPrefix") String fromPrefix,
         @Param("toPrefix") String toPrefix,
@@ -66,12 +66,12 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRate, Exch
      * Verificar se existe taxa ativa
      */
     @Query(value = "SELECT COUNT(*) > 0 FROM exchange_rates WHERE from_currency_prefix = :fromPrefix " +
-                   "AND to_currency_prefix = :toPrefix AND effective_date = :effectiveDate " +
+                   "AND to_currency_prefix = :toPrefix AND created_at = :createdAt " +
                    "AND is_active = true", nativeQuery = true)
     boolean existsActiveByPrefixesAndDate(
         @Param("fromPrefix") String fromPrefix,
         @Param("toPrefix") String toPrefix,
-        @Param("effectiveDate") LocalDate effectiveDate
+        @Param("createdAt") LocalDate createdAt
     );
     
     /**
@@ -93,18 +93,14 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRate, Exch
      */
     @Query(value = """
         SELECT * FROM exchange_rates 
-        WHERE (:fromPrefix IS NULL OR from_currency_prefix = :fromPrefix)
-        AND (:toPrefix IS NULL OR to_currency_prefix = :toPrefix)
-        AND (:startDate IS NULL OR effective_date >= :startDate)
-        AND (:endDate IS NULL OR effective_date <= :endDate)
-        AND (:activeOnly IS NULL OR is_active = :activeOnly)
-        ORDER BY effective_date DESC
+        WHERE from_currency_prefix = :fromPrefix
+        AND to_currency_prefix = :toPrefix
+        AND is_active = :activeOnly
+        ORDER BY created_at DESC
         """, nativeQuery = true)
     Page<ExchangeRate> findExchangeRatesWithFilters(
         @Param("fromPrefix") String fromPrefix,
         @Param("toPrefix") String toPrefix,
-        @Param("startDate") LocalDate startDate,
-        @Param("endDate") LocalDate endDate,
         @Param("activeOnly") Boolean activeOnly,
         Pageable pageable
     );
@@ -117,15 +113,15 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRate, Exch
         WHERE from_currency_prefix = :fromPrefix 
         AND to_currency_prefix = :toPrefix 
         AND is_active = true
-        AND (:startDate IS NULL OR effective_date >= :startDate)
-        AND (:endDate IS NULL OR effective_date <= :endDate)
-        ORDER BY effective_date DESC
+        AND created_at >= :startDate
+        AND created_at <= :endDate
+        ORDER BY created_at DESC
         """, nativeQuery = true)
     List<ExchangeRate> findRateHistory(
-        @Param("fromPrefix") String fromPrefix,
-        @Param("toPrefix") String toPrefix,
-        @Param("startDate") LocalDate startDate,
-        @Param("endDate") LocalDate endDate
+            @Param("fromPrefix") String fromPrefix,
+            @Param("toPrefix") String toPrefix,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate
     );
     
     /**
@@ -136,8 +132,8 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRate, Exch
         WHERE from_currency_prefix = :fromPrefix 
         AND to_currency_prefix = :toPrefix 
         AND is_active = true
-        AND (:startDate IS NULL OR effective_date >= :startDate)
-        AND (:endDate IS NULL OR effective_date <= :endDate)
+        AND created_at >= :startDate
+        AND created_at <= :endDate
         """, nativeQuery = true)
     Double findAverageRate(
         @Param("fromPrefix") String fromPrefix,
@@ -154,8 +150,8 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRate, Exch
         WHERE from_currency_prefix = :fromPrefix 
         AND to_currency_prefix = :toPrefix 
         AND is_active = true
-        AND (:startDate IS NULL OR effective_date >= :startDate)
-        AND (:endDate IS NULL OR effective_date <= :endDate)
+        AND created_at >= :startDate
+        AND created_at <= :endDate
         """, nativeQuery = true)
     Double findMinRate(
         @Param("fromPrefix") String fromPrefix,
@@ -172,40 +168,12 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRate, Exch
         WHERE from_currency_prefix = :fromPrefix 
         AND to_currency_prefix = :toPrefix 
         AND is_active = true
-        AND (:startDate IS NULL OR effective_date >= :startDate)
-        AND (:endDate IS NULL OR effective_date <= :endDate)
+        AND created_at >= :startDate
+        AND created_at <= :endDate
         """, nativeQuery = true)
     Double findMaxRate(
         @Param("fromPrefix") String fromPrefix,
         @Param("toPrefix") String toPrefix,
-        @Param("startDate") LocalDate startDate,
-        @Param("endDate") LocalDate endDate
-    );
-    
-    /**
-     * Busca taxas que sofreram variação significativa
-     */
-    @Query(value = """
-        SELECT * FROM exchange_rates 
-        WHERE from_currency_prefix = :fromPrefix 
-        AND to_currency_prefix = :toPrefix 
-        AND is_active = true
-        AND (:startDate IS NULL OR effective_date >= :startDate)
-        AND (:endDate IS NULL OR effective_date <= :endDate)
-        AND ABS(rate - (
-            SELECT AVG(rate) FROM exchange_rates 
-            WHERE from_currency_prefix = :fromPrefix 
-            AND to_currency_prefix = :toPrefix 
-            AND is_active = true
-            AND (:startDate IS NULL OR effective_date >= :startDate)
-            AND (:endDate IS NULL OR effective_date <= :endDate)
-        )) > :variationThreshold
-        ORDER BY effective_date DESC
-        """, nativeQuery = true)
-    List<ExchangeRate> findRatesWithSignificantVariation(
-        @Param("fromPrefix") String fromPrefix,
-        @Param("toPrefix") String toPrefix,
-        @Param("variationThreshold") Double variationThreshold,
         @Param("startDate") LocalDate startDate,
         @Param("endDate") LocalDate endDate
     );

@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -29,10 +28,6 @@ public class ProductExchangeRate {
     private String toCurrencyPrefix;
     
     @Id
-    @Column(name = "effective_date", nullable = false)
-    private LocalDate effectiveDate;
-    
-    @Id
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
     
@@ -53,13 +48,12 @@ public class ProductExchangeRate {
     
     // Construtor customizado
     public ProductExchangeRate(Long productId, String fromCurrencyPrefix, String toCurrencyPrefix, 
-                              BigDecimal baseRate, BigDecimal productMultiplier, LocalDate effectiveDate) {
+                              BigDecimal baseRate, BigDecimal productMultiplier) {
         this.productId = productId;
         this.fromCurrencyPrefix = fromCurrencyPrefix;
         this.toCurrencyPrefix = toCurrencyPrefix;
         this.baseRate = baseRate;
         this.productMultiplier = productMultiplier;
-        this.effectiveDate = effectiveDate;
         this.isActive = true;
     }
     

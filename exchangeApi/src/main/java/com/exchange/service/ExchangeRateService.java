@@ -5,17 +5,22 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface ExchangeRateService {
     
     // ===== MÉTODOS BÁSICOS =====
     
     /**
-     * Busca a taxa de câmbio ativa para o par de moedas e data especificados
+     * Busca a taxa de câmbio ativa para o par de moedas
      */
-    ExchangeRate getActiveRate(String fromCurrencyPrefix, String toCurrencyPrefix, LocalDate effectiveDate);
+    ExchangeRate getActiveRate(String fromCurrencyPrefix, String toCurrencyPrefix);
+    
+    /**
+     * Busca a taxa de câmbio ativa para o par de moedas (retorna Optional)
+     */
+    Optional<ExchangeRate> findActiveRate(String fromCurrencyPrefix, String toCurrencyPrefix);
     
     /**
      * Busca a taxa de câmbio ativa mais recente
@@ -25,23 +30,23 @@ public interface ExchangeRateService {
     /**
      * Cria uma nova taxa de câmbio
      */
-    ExchangeRate saveRate(String fromCurrencyPrefix, String toCurrencyPrefix, BigDecimal rate, LocalDate effectiveDate);
+    ExchangeRate saveRate(String fromCurrencyPrefix, String toCurrencyPrefix, BigDecimal rate);
+    
+    /**
+     * Atualiza uma taxa de câmbio existente
+     */
+    ExchangeRate updateRate(String fromCurrencyPrefix, String toCurrencyPrefix, 
+                           BigDecimal rate, Boolean isActive);
     
     /**
      * Desativa uma taxa de câmbio
      */
-    void deactivateRate(String fromCurrencyPrefix, String toCurrencyPrefix, LocalDate effectiveDate);
+    void deactivateRate(String fromCurrencyPrefix, String toCurrencyPrefix);
     
     /**
      * Lista taxas ativas com paginação
      */
     Page<ExchangeRate> getActiveRates(Pageable pageable);
-    
-    /**
-     * Busca taxas por período
-     */
-    List<ExchangeRate> getRatesByPeriod(String fromCurrencyPrefix, String toCurrencyPrefix, 
-                                      LocalDate startDate, LocalDate endDate);
     
     // ===== MÉTODOS CUSTOMIZADOS =====
     
@@ -49,37 +54,5 @@ public interface ExchangeRateService {
      * Busca taxas com filtros avançados
      */
     Page<ExchangeRate> getExchangeRatesWithFilters(String fromPrefix, String toPrefix, 
-                                                  LocalDate startDate, LocalDate endDate, 
                                                   Boolean activeOnly, Pageable pageable);
-    
-    /**
-     * Busca histórico de taxas para um par de moedas
-     */
-    List<ExchangeRate> getRateHistory(String fromPrefix, String toPrefix, 
-                                    LocalDate startDate, LocalDate endDate);
-    
-    /**
-     * Busca taxa média em um período
-     */
-    Double getAverageRate(String fromPrefix, String toPrefix, 
-                         LocalDate startDate, LocalDate endDate);
-    
-    /**
-     * Busca taxa mínima em um período
-     */
-    Double getMinRate(String fromPrefix, String toPrefix, 
-                     LocalDate startDate, LocalDate endDate);
-    
-    /**
-     * Busca taxa máxima em um período
-     */
-    Double getMaxRate(String fromPrefix, String toPrefix, 
-                     LocalDate startDate, LocalDate endDate);
-    
-    /**
-     * Busca taxas que sofreram variação significativa
-     */
-    List<ExchangeRate> getRatesWithSignificantVariation(String fromPrefix, String toPrefix, 
-                                                       Double variationThreshold,
-                                                       LocalDate startDate, LocalDate endDate);
 } 

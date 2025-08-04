@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
@@ -13,5 +12,5 @@ public class ExchangeRateRequest {
     private String fromCurrencyCode;
     private String toCurrencyCode;
     private BigDecimal rate;
-    private LocalDate effectiveDate;
+    private Boolean isActive;
 } 

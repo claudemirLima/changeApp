@@ -72,8 +72,8 @@ docker-compose down
 ./scripts/stop-dev.sh
 
 # Comandos manuais
-docker-compose -f docker-compose.dev.yml up -d
-docker-compose -f docker-compose.dev.yml down
+docker-compose -f docker-compose.yml up -d
+docker-compose -f docker-compose.yml down
 ```
 
 ## Serviços

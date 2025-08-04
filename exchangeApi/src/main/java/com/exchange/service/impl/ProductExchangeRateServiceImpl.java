@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -30,13 +29,16 @@ public class ProductExchangeRateServiceImpl implements ProductExchangeRateServic
     
     @Override
     @Transactional(readOnly = true)
-    public ProductExchangeRate getActiveProductRate(Long productId, String fromCurrencyPrefix, String toCurrencyPrefix, LocalDate effectiveDate) {
+    public ProductExchangeRate getActiveProductRate(Long productId, String fromCurrencyPrefix, String toCurrencyPrefix) {
         // Validar se as moedas existem
         currencyService.getActiveCurrencyByPrefix(fromCurrencyPrefix);
         currencyService.getActiveCurrencyByPrefix(toCurrencyPrefix);
         
-        return productExchangeRateRepository.findActiveByProductAndPrefixesAndDate(productId, fromCurrencyPrefix, toCurrencyPrefix, effectiveDate)
-            .orElseGet(() -> getLatestActiveProductRate(productId, fromCurrencyPrefix, toCurrencyPrefix));
+        return productExchangeRateRepository.findLatestActiveByProductAndPrefixes(productId, fromCurrencyPrefix, toCurrencyPrefix)
+            .orElseThrow(() -> new ProductExchangeRateNotFoundException(
+                "Taxa de câmbio para produto não encontrada: Produto " + productId + 
+                ", " + fromCurrencyPrefix + " → " + toCurrencyPrefix
+            ));
     }
     
     @Override
@@ -52,7 +54,7 @@ public class ProductExchangeRateServiceImpl implements ProductExchangeRateServic
     @Override
     @Transactional
     public ProductExchangeRate saveProductRate(Long productId, String fromCurrencyPrefix, String toCurrencyPrefix, 
-                                             BigDecimal baseRate, BigDecimal productMultiplier, LocalDate effectiveDate) {
+                                             BigDecimal baseRate, BigDecimal productMultiplier) {
         // Validar se as moedas existem
         currencyService.getActiveCurrencyByPrefix(fromCurrencyPrefix);
         currencyService.getActiveCurrencyByPrefix(toCurrencyPrefix);
@@ -60,11 +62,11 @@ public class ProductExchangeRateServiceImpl implements ProductExchangeRateServic
         // Validar parâmetros
         validateProductRate(baseRate, productMultiplier);
         
-        // Verificar se já existe taxa ativa para este produto nesta data
-        if (productExchangeRateRepository.existsActiveByProductAndPrefixesAndDate(productId, fromCurrencyPrefix, toCurrencyPrefix, effectiveDate)) {
+        // Verificar se já existe taxa ativa para este produto
+        if (productExchangeRateRepository.findLatestActiveByProductAndPrefixes(productId, fromCurrencyPrefix, toCurrencyPrefix).isPresent()) {
             throw new ProductExchangeRateAlreadyExistsException(
                 "Já existe uma taxa ativa para o produto " + productId + 
-                " (" + fromCurrencyPrefix + " → " + toCurrencyPrefix + ") na data " + effectiveDate
+                " (" + fromCurrencyPrefix + " → " + toCurrencyPrefix + ")"
             );
         }
         
@@ -74,7 +76,6 @@ public class ProductExchangeRateServiceImpl implements ProductExchangeRateServic
         productExchangeRate.setToCurrencyPrefix(toCurrencyPrefix);
         productExchangeRate.setBaseRate(baseRate);
         productExchangeRate.setProductMultiplier(productMultiplier);
-        productExchangeRate.setEffectiveDate(effectiveDate);
         productExchangeRate.setIsActive(true);
         productExchangeRate.setDeactivatedAt(null);
         
@@ -83,8 +84,8 @@ public class ProductExchangeRateServiceImpl implements ProductExchangeRateServic
     
     @Override
     @Transactional
-    public void deactivateProductRate(Long productId, String fromCurrencyPrefix, String toCurrencyPrefix, LocalDate effectiveDate) {
-        ProductExchangeRate activeRate = getActiveProductRate(productId, fromCurrencyPrefix, toCurrencyPrefix, effectiveDate);
+    public void deactivateProductRate(Long productId, String fromCurrencyPrefix, String toCurrencyPrefix) {
+        ProductExchangeRate activeRate = getActiveProductRate(productId, fromCurrencyPrefix, toCurrencyPrefix);
         
         // Criar nova entrada inativa
         ProductExchangeRate inactiveRate = new ProductExchangeRate();
@@ -93,7 +94,6 @@ public class ProductExchangeRateServiceImpl implements ProductExchangeRateServic
         inactiveRate.setToCurrencyPrefix(activeRate.getToCurrencyPrefix());
         inactiveRate.setBaseRate(activeRate.getBaseRate());
         inactiveRate.setProductMultiplier(activeRate.getProductMultiplier());
-        inactiveRate.setEffectiveDate(activeRate.getEffectiveDate());
         inactiveRate.setIsActive(false);
         inactiveRate.setDeactivatedAt(LocalDateTime.now());
         
@@ -101,13 +101,13 @@ public class ProductExchangeRateServiceImpl implements ProductExchangeRateServic
             // Salvar versão inativa
             productExchangeRateRepository.save(inactiveRate);
             
-            // Remover versão ativa
-            productExchangeRateRepository.delete(activeRate);
+            // Desativar versão ativa
+            activeRate.setIsActive(false);
+            activeRate.setDeactivatedAt(LocalDateTime.now());
+            productExchangeRateRepository.save(activeRate);
             
         } catch (DataIntegrityViolationException e) {
-            throw new ProductExchangeRateOperationException(
-                "Erro ao desativar taxa de câmbio para produto"
-            );
+            throw new ProductExchangeRateOperationException("Erro ao desativar taxa de câmbio para produto: " + e.getMessage());
         }
     }
     
@@ -129,38 +129,15 @@ public class ProductExchangeRateServiceImpl implements ProductExchangeRateServic
         return productExchangeRateRepository.findActiveWithPagination(pageable);
     }
     
-    @Override
-    @Transactional(readOnly = true)
-    public List<ProductExchangeRate> getRatesByProductAndPeriod(Long productId, String fromCurrencyPrefix, String toCurrencyPrefix, 
-                                                             LocalDate startDate, LocalDate endDate) {
-        return productExchangeRateRepository.findActiveByProductAndPrefixesAndPeriod(
-            productId, fromCurrencyPrefix, toCurrencyPrefix, startDate, endDate);
-    }
+    // ===== MÉTODOS PRIVADOS =====
     
-    // Validações
     private void validateProductRate(BigDecimal baseRate, BigDecimal productMultiplier) {
-        if (baseRate == null) {
-            throw new IllegalArgumentException("Taxa base não pode ser nula");
-        }
-        
-        if (productMultiplier == null) {
-            throw new IllegalArgumentException("Multiplicador do produto não pode ser nulo");
-        }
-        
-        if (baseRate.compareTo(BigDecimal.ZERO) <= 0) {
+        if (baseRate == null || baseRate.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Taxa base deve ser maior que zero");
         }
         
-        if (productMultiplier.compareTo(BigDecimal.ZERO) <= 0) {
+        if (productMultiplier == null || productMultiplier.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Multiplicador do produto deve ser maior que zero");
-        }
-        
-        if (baseRate.compareTo(new BigDecimal("1000000")) > 0) {
-            throw new IllegalArgumentException("Taxa base muito alta");
-        }
-        
-        if (productMultiplier.compareTo(new BigDecimal("100")) > 0) {
-            throw new IllegalArgumentException("Multiplicador do produto muito alto");
         }
     }
 } 

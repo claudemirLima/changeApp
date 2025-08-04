@@ -31,8 +31,7 @@ public class StandardConversionStrategy implements ConversionStrategy {
         // Buscar taxa de câmbio
         ExchangeRate exchangeRate = exchangeRateService.getActiveRate(
             request.getFromCurrencyCode(), 
-            request.getToCurrencyCode(), 
-            request.getConversionDate() != null ? request.getConversionDate() : LocalDate.now()
+            request.getToCurrencyCode()
         );
         
         if (exchangeRate == null) {
@@ -63,7 +62,7 @@ public class StandardConversionStrategy implements ConversionStrategy {
     public boolean supports(ConversionRequest request) {
         // Estratégia padrão suporta todas as conversões básicas
         // (sem produto específico)
-        return request.getProductId() == null;
+        return request.getProductId() == null || Long.valueOf(0).equals(request.getProductId());
     }
     
     @Override

@@ -5,7 +5,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 
 public interface ProductExchangeRateService {
@@ -13,7 +12,7 @@ public interface ProductExchangeRateService {
     /**
      * Busca a taxa de câmbio ativa para um produto específico
      */
-    ProductExchangeRate getActiveProductRate(Long productId, String fromCurrencyPrefix, String toCurrencyPrefix, LocalDate effectiveDate);
+    ProductExchangeRate getActiveProductRate(Long productId, String fromCurrencyPrefix, String toCurrencyPrefix);
     
     /**
      * Busca a taxa de câmbio ativa mais recente para um produto
@@ -24,12 +23,12 @@ public interface ProductExchangeRateService {
      * Cria uma nova taxa de câmbio para produto
      */
     ProductExchangeRate saveProductRate(Long productId, String fromCurrencyPrefix, String toCurrencyPrefix, 
-                                      BigDecimal baseRate, BigDecimal productMultiplier, LocalDate effectiveDate);
+                                      BigDecimal baseRate, BigDecimal productMultiplier);
     
     /**
      * Desativa uma taxa de câmbio para produto
      */
-    void deactivateProductRate(Long productId, String fromCurrencyPrefix, String toCurrencyPrefix, LocalDate effectiveDate);
+    void deactivateProductRate(Long productId, String fromCurrencyPrefix, String toCurrencyPrefix);
     
     /**
      * Lista taxas ativas por produto
@@ -45,10 +44,4 @@ public interface ProductExchangeRateService {
      * Lista todas as taxas ativas com paginação
      */
     Page<ProductExchangeRate> getActiveRates(Pageable pageable);
-    
-    /**
-     * Busca taxas por produto e período
-     */
-    List<ProductExchangeRate> getRatesByProductAndPeriod(Long productId, String fromCurrencyPrefix, String toCurrencyPrefix, 
-                                                       LocalDate startDate, LocalDate endDate);
 } 
