@@ -23,18 +23,7 @@ import java.util.Map;
 
 /**
  * Listener para comandos de conversão usando factory específica.
- * 
- * VANTAGENS desta abordagem:
- * 1. Deserialização automática para o tipo correto (ConversionCommand)
- * 2. Não precisa fazer cast manual ou conversão de Map
- * 3. Type safety em tempo de compilação
- * 4. Melhor performance (sem conversão manual)
- * 5. Código mais limpo e legível
- * 
- * Para criar factories para outros tipos:
- * 1. Adicione o método no KafkaConsumerConfig
- * 2. Crie o @Bean correspondente
- * 3. Use o containerFactory específico no @KafkaListener
+
  */
 @Service
 @Log4j2
