@@ -11,8 +11,8 @@ COPY target/managerProductApi-*.jar app.jar
 EXPOSE 8083
 
 # Variáveis de ambiente
-ENV SPRING_PROFILES_ACTIVE=prd
+ENV SPRING_PROFILES_ACTIVE=dev
 ENV JAVA_OPTS="-Xmx512m -Xms256m"
 
 # Comando para executar a aplicação
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"] 
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

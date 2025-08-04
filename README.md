@@ -8,6 +8,53 @@ Sistema de conversão de moedas para o reino SRM, implementado com três APIs mo
 - **TransactionApi**: Registro e consulta de transações
 - **ManagerProductApi**: Gestão de produtos, reinos e valorização
 
+## 🚀 Inicialização Rápida
+
+### Pré-requisitos
+
+- **Java 21** (JDK)
+- **Maven 3.9+**
+- **Docker** e **Docker Compose**
+- **Git**
+
+### Processo de Inicialização
+
+1. **Clone o repositório:**
+   ```bash
+   git clone <repository-url>
+   cd changeApp
+   ```
+
+2. **Compile o projeto:**
+   ```bash
+   mvn clean package -DskipTests
+   ```
+
+3. **Inicie os serviços:**
+   ```bash
+   docker-compose up -d
+   ```
+
+4. **Verifique o status:**
+   ```bash
+   docker-compose ps
+   ```
+
+### URLs das APIs
+
+- **ExchangeApi**: http://localhost:8081
+  - Swagger: http://localhost:8081/swagger-ui.html
+- **TransactionApi**: http://localhost:8082
+  - Swagger: http://localhost:8082/swagger-ui.html
+- **ManagerProductApi**: http://localhost:8083
+  - Swagger: http://localhost:8083/swagger-ui.html
+
+### Portas dos Bancos de Dados
+
+- **PostgreSQL**: localhost:5433
+- **MongoDB**: localhost:27018
+- **Redis**: localhost:6379
+
 ## Arquitetura de Microserviços
 
 ### 🏗️ **Princípios Aplicados:**
@@ -18,21 +65,21 @@ Sistema de conversão de moedas para o reino SRM, implementado com três APIs mo
 
 ### 🗄️ **Bancos de Dados:**
 
-#### **ExchangeApi + TransactionApi (PostgreSQL)**
-- **Banco**: `changeapp` (PostgreSQL)
-- **Porta**: 5432 (Produção) / 5433 (Desenvolvimento)
+#### **ExchangeApi (PostgreSQL)**
+- **Banco**: `changeapp_dev`
+- **Porta**: 5433 (Desenvolvimento)
 - **Usuário**: `changeapp`
-- **Tabelas**: `currencies`, `exchange_rates`, `product_exchange_rates`, `transactions`
+- **Tabelas**: `currencies`, `exchange_rates`, `product_exchange_rates`
 
 #### **ManagerProductApi (PostgreSQL)**
-- **Banco**: `changeapp_product` (PostgreSQL)
-- **Porta**: 5432 (Produção) / 5433 (Desenvolvimento)
+- **Banco**: `changeapp_product_dev`
+- **Porta**: 5433 (Desenvolvimento)
 - **Usuário**: `changeapp`
 - **Tabelas**: `kingdoms`, `products`
 
 #### **TransactionApi (MongoDB)**
-- **Banco**: `changeapp_transactions` (MongoDB)
-- **Porta**: 27017 (Produção) / 27018 (Desenvolvimento)
+- **Banco**: `changeapp_transactions_dev`
+- **Porta**: 27018 (Desenvolvimento)
 - **Usuário**: `changeapp`
 - **Collections**: `transactions`
 
@@ -52,6 +99,7 @@ changeApp/
 │   │   ├── service/       # Lógica de negócio
 │   │   ├── repository/    # Acesso a dados
 │   │   └── domain/        # Entidades e DTOs
+│   ├── src/main/resources/db/migration/  # Flyway migrations
 │   └── pom.xml
 ├── transactionApi/        # API de Transações
 │   ├── src/main/java/com/transaction/
@@ -59,6 +107,7 @@ changeApp/
 │   │   ├── service/       # Lógica de negócio
 │   │   ├── repository/    # Acesso a dados
 │   │   └── domain/        # Entidades e DTOs
+│   ├── src/main/resources/db/  # MongoDB scripts
 │   └── pom.xml
 ├── managerProductApi/     # API de Gestão de Produtos
 │   ├── src/main/java/com/product/
@@ -66,7 +115,10 @@ changeApp/
 │   │   ├── service/       # Lógica de negócio
 │   │   ├── repository/    # Acesso a dados
 │   │   └── domain/        # Entidades e DTOs
+│   ├── src/main/resources/db/migration/  # Flyway migrations
 │   └── pom.xml
+├── docker-compose.yml     # Orquestração dos containers
+├── init-databases.sql     # Script de inicialização dos bancos
 └── pom.xml               # POM principal
 ```
 
@@ -80,6 +132,7 @@ changeApp/
 - **Redis** (Cache compartilhado)
 - **Flyway** (Migrations PostgreSQL)
 - **Lombok** (Redução de boilerplate)
+- **Docker** (Containerização)
 
 ## APIs
 
@@ -88,14 +141,14 @@ Responsável por:
 - Gestão de taxas de câmbio entre moedas
 - Conversões em tempo real
 - Configuração de taxas por produto
-- **Banco**: `changeapp` (PostgreSQL)
+- **Banco**: `changeapp_dev` (PostgreSQL)
 
 ### TransactionApi
 Responsável por:
 - Registro de transações comerciais
 - Histórico de transações
 - Relatórios e consultas avançadas
-- **Banco**: `changeapp_transactions` (MongoDB)
+- **Banco**: `changeapp_transactions_dev` (MongoDB)
 
 ### ManagerProductApi
 Responsável por:
@@ -103,155 +156,116 @@ Responsável por:
 - Gestão de reinos
 - Sistema de valorização/desvalorização
 - Controle de inflação por reino
-- **Banco**: `changeapp_product` (PostgreSQL)
+- **Banco**: `changeapp_product_dev` (PostgreSQL)
 
-## Scripts SQL
+## Comandos Úteis
 
-### Banco ExchangeApi + TransactionApi (`changeapp`)
+### Desenvolvimento
 
-```sql
--- Tabelas para ExchangeApi
-CREATE TABLE currencies (
-    prefix VARCHAR(10) NOT NULL,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
-    deactivated_at TIMESTAMP NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NULL,
-    PRIMARY KEY (prefix, is_active)
-);
+```bash
+# Compilar apenas um módulo
+mvn clean package -pl exchangeApi -am -DskipTests
 
-CREATE TABLE exchange_rates (
-    from_currency_prefix VARCHAR(10) NOT NULL,
-    to_currency_prefix VARCHAR(10) NOT NULL,
-    effective_date DATE NOT NULL,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    rate DECIMAL(10,4) NOT NULL,
-    deactivated_at TIMESTAMP NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NULL,
-    PRIMARY KEY (from_currency_prefix, to_currency_prefix, effective_date, is_active)
-);
+# Executar testes
+mvn test
 
-CREATE TABLE product_exchange_rates (
-    product_id BIGINT NOT NULL,
-    from_currency_prefix VARCHAR(10) NOT NULL,
-    to_currency_prefix VARCHAR(10) NOT NULL,
-    effective_date DATE NOT NULL,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    base_rate DECIMAL(10,4) NOT NULL,
-    product_multiplier DECIMAL(5,2) NOT NULL,
-    deactivated_at TIMESTAMP NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP NULL,
-    PRIMARY KEY (product_id, from_currency_prefix, to_currency_prefix, effective_date, is_active)
-);
+# Ver logs dos containers
+docker-compose logs -f exchange-api-dev
+
+# Parar todos os serviços
+docker-compose down
+
+# Parar e remover volumes
+docker-compose down -v
+
+# Reconstruir containers
+docker-compose build --no-cache
 ```
 
-### Banco ManagerProductApi (`changeapp_product`)
+### Banco de Dados
 
-```sql
--- Tabela de Reinos
-CREATE TABLE kingdoms (
-    id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL UNIQUE,
-    description TEXT,
-    quality_rate DECIMAL(5,2) NOT NULL DEFAULT 1.00,
-    is_owner BOOLEAN NOT NULL DEFAULT FALSE,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP,
-    deactivated_at TIMESTAMP
-);
+```bash
+# Conectar ao PostgreSQL
+docker exec -it changeapp-postgres-dev psql -U changeapp -d changeapp_dev
 
--- Tabela de Produtos
-CREATE TABLE products (
-    id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
-    category VARCHAR(50) NOT NULL,
-    base_value DECIMAL(10,2) NOT NULL,
-    demand_quantifier DECIMAL(5,2) NOT NULL DEFAULT 1.00,
-    quality_qualifier DECIMAL(5,2) NOT NULL DEFAULT 1.00,
-    kingdom_id BIGINT NOT NULL,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP,
-    deactivated_at TIMESTAMP,
-    
-    CONSTRAINT fk_products_kingdom FOREIGN KEY (kingdom_id) REFERENCES kingdoms(id),
-    CONSTRAINT chk_products_base_value CHECK (base_value > 0),
-    CONSTRAINT chk_products_demand_quantifier CHECK (demand_quantifier > 0),
-    CONSTRAINT chk_products_quality_qualifier CHECK (quality_qualifier > 0)
-);
+# Conectar ao MongoDB
+docker exec -it changeapp-mongodb-dev mongosh -u changeapp -p changeapp123 --authenticationDatabase admin
+
+# Ver logs do PostgreSQL
+docker-compose logs postgres-dev
+
+# Ver logs do MongoDB
+docker-compose logs mongodb-dev
 ```
 
-### Banco TransactionApi (`changeapp_transactions`)
+### Monitoramento
 
-```javascript
-// Collection: transactions
-{
-  "_id": "uuid-do-exchange-api",
-  "transactionId": "uuid-do-exchange-api",
-  "type": "CONVERSION|EXCHANGE",
-  "status": "REQUESTED|APPROVED|NOT_APPROVED|WARNING",
-  "originalAmount": 100.00,
-  "convertedAmount": 250.00,
-  "fromCurrencyPrefix": "OR",
-  "toCurrencyPrefix": "TB",
-  "exchangeRate": 2.50,
-  "fromProductId": 1,
-  "fromProductName": "Hidromel",
-  "toProductId": 2,
-  "toProductName": "Armas",
-  "kingdomId": 1,
-  "kingdomName": "SRM",
-  "reason": "Troca comercial",
-  "createdAt": "2024-01-01T10:00:00",
-  "updatedAt": "2024-01-01T10:00:00",
-  "completedAt": "2024-01-01T10:05:00"
-}
+```bash
+# Status dos containers
+docker-compose ps
 
-// Índices criados automaticamente:
-// - transactionId (único)
-// - type
-// - status
-// - fromCurrencyPrefix
-// - toCurrencyPrefix
-// - kingdomId
-// - fromProductId
-// - toProductId
-// - createdAt
-// - originalAmount
-// - Compostos: (type, status), (fromCurrencyPrefix, toCurrencyPrefix), (kingdomId, status)
+# Uso de recursos
+docker stats
+
+# Health checks
+curl http://localhost:8081/actuator/health
+curl http://localhost:8082/actuator/health
+curl http://localhost:8083/actuator/health
 ```
 
-## Scripts de Gerenciamento
+## Migrações de Banco
+
+### Flyway (PostgreSQL)
+As migrações são executadas automaticamente na inicialização das aplicações:
+
+- **ExchangeApi**: `exchangeApi/src/main/resources/db/migration/`
+- **ManagerProductApi**: `managerProductApi/src/main/resources/db/migration/`
 
 ### MongoDB
+O script de inicialização é executado automaticamente:
+- **TransactionApi**: `transactionApi/src/main/resources/db/init-mongo.js`
+
+## Troubleshooting
+
+### Problemas Comuns
+
+1. **"no main manifest attribute"**
+   - Execute: `mvn clean package -DskipTests`
+   - Verifique se o `spring-boot-maven-plugin` está configurado
+
+2. **Porta já em uso**
+   - Verifique se não há outros containers rodando
+   - Execute: `docker-compose down`
+
+3. **Erro de conexão com banco**
+   - Aguarde os bancos inicializarem completamente
+   - Verifique os logs: `docker-compose logs postgres-dev`
+
+4. **Permissões de arquivo**
+   - Execute: `sudo rm -rf */target`
+   - Recompile: `mvn clean package -DskipTests`
+
+### Logs Importantes
+
 ```bash
-# Conectar ao MongoDB
-./scripts/mongodb-manager.sh dev connect
+# Logs de inicialização
+docker-compose logs exchange-api-dev | grep "Started"
 
-# Backup do MongoDB
-./scripts/mongodb-manager.sh dev backup
+# Logs de erro
+docker-compose logs --tail=50 exchange-api-dev | grep ERROR
 
-# Restaurar backup
-./scripts/mongodb-manager.sh dev restore backup_file.gz
-
-# Ver logs
-./scripts/mongodb-manager.sh dev logs
-
-# Ver estatísticas
-./scripts/mongodb-manager.sh dev stats
+# Logs de migração
+docker-compose logs exchange-api-dev | grep Flyway
 ```
 
-### PostgreSQL
-```bash
-# Migrar ExchangeApi + ManagerProductApi
-./scripts/migrate-all.sh dev migrate
+## Contribuição
 
-# Migrar ManagerProductApi
-./scripts/migrate-product.sh dev migrate
-``` 
+1. Faça o fork do projeto
+2. Crie uma branch para sua feature
+3. Commit suas mudanças
+4. Push para a branch
+5. Abra um Pull Request
+
+## Licença
+
+Este projeto está sob a licença MIT. 
