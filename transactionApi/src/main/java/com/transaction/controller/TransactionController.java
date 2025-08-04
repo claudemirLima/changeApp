@@ -1,5 +1,6 @@
 package com.transaction.controller;
 
+import com.transaction.domain.dto.NewTransactionRequest;
 import com.transaction.domain.dto.TransactionRequest;
 import com.transaction.domain.dto.TransactionResponse;
 import com.transaction.domain.enums.TransactionStatus;
@@ -38,9 +39,8 @@ public class TransactionController {
     @PostMapping
     @Operation(summary = "Criar nova transação", description = "Cria uma nova transação no sistema")
     public ResponseEntity<TransactionResponse> createTransaction(
-            @Valid @RequestBody TransactionRequest request) {
-        log.info("Recebendo requisição para criar transação: {}", request.getTransactionId());
-        
+            @Valid @RequestBody NewTransactionRequest request) {
+
         TransactionResponse response = transactionService.createTransaction(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

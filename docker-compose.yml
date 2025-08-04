@@ -11,35 +11,35 @@ services:
       - "5433:5432"
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
-      # Scripts externos removidos - Flyway assume controle total da inicialização
+      - ./init-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
     networks:
       - changeapp-dev-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U changeapp -d changeapp_dev"]
+      test: ["CMD-SHELL", "pg_isready -U changeapp -d changeapp_dev && pg_isready -U changeapp -d changeapp_product_dev && pg_isready -U changeapp -d changeapp_transactions_dev"]
       interval: 30s
       timeout: 10s
       retries: 3
 
   # MongoDB Database para TransactionApi (Desenvolvimento)
-#  mongodb-dev:
-#    image: mongo:7.0
-#    container_name: changeapp-mongodb-dev
-#    environment:
-#      MONGO_INITDB_ROOT_USERNAME: changeapp
-#      MONGO_INITDB_ROOT_PASSWORD: changeapp123
-#      MONGO_INITDB_DATABASE: changeapp_transactions_dev
-#    ports:
-#      - "27018:27017"
-#    volumes:
-#      - mongodb_dev_data:/data/db
-#      - ./transactionApi/src/main/resources/db/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
-#    networks:
-#      - changeapp-dev-network
-#    healthcheck:
-#      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-#      interval: 30s
-#      timeout: 10s
-#      retries: 3
+  mongodb-dev:
+    image: mongo:7.0
+    container_name: changeapp-mongodb-dev
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: changeapp
+      MONGO_INITDB_ROOT_PASSWORD: changeapp123
+      MONGO_INITDB_DATABASE: changeapp_transactions_dev
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb_dev_data:/data/db
+      - ./transactionApi/src/main/resources/db/init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+    networks:
+      - changeapp-dev-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # Redis Cache
   redis:
@@ -127,33 +127,33 @@ services:
 #      start_period: 60s
 
   # ManagerProductApi (Desenvolvimento)
-#  manager-product-api-dev:
-#    build:
-#      context: ./managerProductApi
-#      dockerfile: Dockerfile.dev
-#    container_name: changeapp-manager-product-api-dev
-#    ports:
-#      - "8083:8083"
-#    environment:
-#      SPRING_PROFILES_ACTIVE: dev
-#      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-dev:5432/changeapp_product_dev
-#      SPRING_DATASOURCE_USERNAME: changeapp
-#      SPRING_DATASOURCE_PASSWORD: changeapp123
-#      JAVA_OPTS: "-Xmx512m -Xms256m -Dspring.profiles.active=dev"
-#    volumes:
-#      - ./managerProductApi:/app
-#      - /app/target
-#    depends_on:
-#      postgres-dev:
-#        condition: service_healthy
-#    networks:
-#      - changeapp-dev-network
-#    healthcheck:
-#      test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
-#      interval: 30s
-#      timeout: 10s
-#      retries: 3
-#      start_period: 60s
+  manager-product-api-dev:
+    build:
+      context: ./managerProductApi
+      dockerfile: Dockerfile.dev
+    container_name: changeapp-manager-product-api-dev
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-dev:5432/changeapp_product_dev
+      SPRING_DATASOURCE_USERNAME: changeapp
+      SPRING_DATASOURCE_PASSWORD: changeapp123
+      JAVA_OPTS: "-Xmx512m -Xms256m -Dspring.profiles.active=dev"
+    volumes:
+      - ./managerProductApi:/app
+      - /app/target
+    depends_on:
+      postgres-dev:
+        condition: service_healthy
+    networks:
+      - changeapp-dev-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
 volumes:
   postgres_dev_data:

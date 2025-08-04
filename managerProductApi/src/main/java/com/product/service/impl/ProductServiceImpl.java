@@ -29,8 +29,7 @@ public class ProductServiceImpl implements ProductService {
     
     @Autowired
     private KingdomService kingdomService;
-    
-    // ===== MÉTODOS BÁSICOS =====
+
     
     @Override
     @Transactional
@@ -49,7 +48,16 @@ public class ProductServiceImpl implements ProductService {
         }
         
         // Criar novo produto
-        Product product = new Product(name, description, category, baseValue, demandQuantifier, qualityQualifier, kingdom);
+        Product product = Product.builder()
+                .name(name)
+                .description(description)
+                .category(category)
+                .baseValue(baseValue)
+                .demandQuantifier(demandQuantifier)
+                .qualityQualifier(qualityQualifier)
+                .kingdom(kingdom)
+                .build();
+
         
         try {
             return productRepository.save(product);
@@ -142,8 +150,7 @@ public class ProductServiceImpl implements ProductService {
     public List<Product> getAllActiveProducts() {
         return productRepository.findAllActive();
     }
-    
-    // ===== MÉTODOS DE CONSULTA ESPECÍFICA =====
+
     
     @Override
     @Transactional(readOnly = true)
@@ -203,23 +210,13 @@ public class ProductServiceImpl implements ProductService {
         validateRange(minValue, maxValue, "valor base");
         return productRepository.findByBaseValueRange(minValue, maxValue);
     }
-    
+
     @Override
-    @Transactional(readOnly = true)
     public List<Product> getProductsByFinalValueRange(BigDecimal minValue, BigDecimal maxValue) {
-        validateRange(minValue, maxValue, "valor final");
-        
-        // Para range de valor final, precisamos calcular para cada produto
-        // Esta é uma implementação simplificada - em produção, considere usar views ou índices
-        List<Product> allProducts = getAllActiveProducts();
-        return allProducts.stream()
-            .filter(product -> {
-                BigDecimal finalValue = product.calculateFinalValue();
-                return finalValue.compareTo(minValue) >= 0 && finalValue.compareTo(maxValue) <= 0;
-            })
-            .toList();
+        return List.of();
     }
-    
+
+
     @Override
     @Transactional(readOnly = true)
     public List<Product> getProductsByDemandRange(BigDecimal minDemand, BigDecimal maxDemand) {

@@ -1,5 +1,6 @@
 package com.transaction.service.impl;
 
+import com.transaction.domain.dto.NewTransactionRequest;
 import com.transaction.domain.dto.TransactionRequest;
 import com.transaction.domain.dto.TransactionResponse;
 import com.transaction.domain.entity.Transaction;
@@ -33,16 +34,9 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
     
     @Override
-    public TransactionResponse createTransaction(TransactionRequest request) {
-        log.info("Criando transação com ID: {}", request.getTransactionId());
-        
-        // Verificar se já existe
-        if (transactionRepository.existsByTransactionId(request.getTransactionId())) {
-            throw new RuntimeException("Transação com ID " + request.getTransactionId() + " já existe");
-        }
-        
+    public TransactionResponse createTransaction(NewTransactionRequest request) {
         // Criar entidade usando mapper
-        Transaction transaction = TransactionMapper.requestToTransaction(request);
+        Transaction transaction = TransactionMapper.requestTonewTransaction(request);
         
         Transaction savedTransaction = transactionRepository.save(transaction);
         log.info("Transação criada com sucesso: {}", savedTransaction.getTransactionId());

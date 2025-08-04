@@ -11,9 +11,7 @@ import java.util.List;
  * Interface para serviços de gerenciamento de Produtos
  */
 public interface ProductService {
-    
-    // ===== MÉTODOS BÁSICOS =====
-    
+
     /**
      * Cria um novo produto
      */
@@ -119,9 +117,7 @@ public interface ProductService {
      * Busca produtos por range de qualidade
      */
     List<Product> getProductsByQualityRange(BigDecimal minQuality, BigDecimal maxQuality);
-    
-    // ===== MÉTODOS DE CONTAGEM =====
-    
+
     /**
      * Conta o número de produtos ativos
      */

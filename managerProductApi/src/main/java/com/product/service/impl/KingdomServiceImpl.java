@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -37,7 +38,14 @@ public class KingdomServiceImpl implements KingdomService {
         }
         
         // Criar novo reino
-        Kingdom kingdom = new Kingdom(name, description, qualityRate, isOwner);
+        Kingdom kingdom = Kingdom.builder()
+                .name(name)
+                .createdAt(LocalDateTime.now())
+                .description(description)
+                .isOwner(isOwner)
+                .qualityRate(qualityRate)
+                .build();
+
         
         try {
             return kingdomRepository.save(kingdom);

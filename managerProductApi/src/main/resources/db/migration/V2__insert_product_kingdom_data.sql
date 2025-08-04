@@ -13,12 +13,10 @@ INSERT INTO kingdoms (name, description, quality_rate, is_owner, is_active) VALU
 -- Inserção de Produtos
 INSERT INTO products (name, description, category, base_value, demand_quantifier, quality_qualifier, kingdom_id, is_active) VALUES
 -- Produtos do Reino SRM (Reino Proprietário)
-('Ouro Real', 'Moeda oficial do reino SRM', 'Moeda', 100.00, 1.00, 1.50, 1, TRUE),
 ('Pergaminhos Mágicos', 'Pergaminhos com encantamentos antigos', 'Artefatos', 250.00, 2.50, 1.80, 1, TRUE),
 ('Poções de Cura', 'Poções mágicas de cura', 'Poções', 150.00, 1.80, 1.20, 1, TRUE),
 
 -- Produtos do Reino dos Anões
-('Tibar', 'Moeda dos anões, forjada em metal precioso', 'Moeda', 40.00, 1.20, 2.00, 2, TRUE),
 ('Armas de Aço', 'Armas forjadas pelos mestres anões', 'Armas', 500.00, 3.00, 2.50, 2, TRUE),
 ('Joias Raras', 'Joias preciosas das minas anãs', 'Joias', 800.00, 2.80, 2.20, 2, TRUE),
 ('Hidromel Real', 'Hidromel da melhor qualidade', 'Bebidas', 120.00, 1.50, 1.80, 2, TRUE),

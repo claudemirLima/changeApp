@@ -1,5 +1,6 @@
 package com.transaction.service;
 
+import com.transaction.domain.dto.NewTransactionRequest;
 import com.transaction.domain.dto.TransactionRequest;
 import com.transaction.domain.dto.TransactionResponse;
 import com.transaction.domain.entity.Transaction;
@@ -19,7 +20,7 @@ import java.util.Optional;
 public interface TransactionService {
     
     // CRUD básico
-    TransactionResponse createTransaction(TransactionRequest request);
+    TransactionResponse createTransaction(NewTransactionRequest request);
     Optional<TransactionResponse> getTransactionById(String transactionId);
     List<TransactionResponse> getAllTransactions();
     Page<TransactionResponse> getAllTransactions(Pageable pageable);

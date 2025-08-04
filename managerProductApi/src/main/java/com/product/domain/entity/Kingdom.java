@@ -2,6 +2,7 @@ package com.product.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "kingdoms")
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Kingdom {
@@ -44,27 +46,7 @@ public class Kingdom {
     
     @Column(name = "deactivated_at")
     private LocalDateTime deactivatedAt;
-    
-    // Construtor customizado
-    public Kingdom(String name, String description, BigDecimal qualityRate, Boolean isOwner) {
-        this();
-        this.name = name;
-        this.description = description;
-        this.qualityRate = qualityRate;
-        this.isOwner = isOwner;
-    }
-    
-    // Construtor padrão com inicialização
-    public Kingdom() {
-        this.createdAt = LocalDateTime.now();
-    }
-    
-    // Métodos de lifecycle
-    @PreUpdate
-    public void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
-    
+
     // Métodos de negócio
     public void deactivate() {
         this.isActive = false;

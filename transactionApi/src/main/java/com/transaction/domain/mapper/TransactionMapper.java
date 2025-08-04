@@ -1,5 +1,6 @@
 package com.transaction.domain.mapper;
 
+import com.transaction.domain.dto.NewTransactionRequest;
 import com.transaction.domain.dto.TransactionRequest;
 import com.transaction.domain.dto.TransactionResponse;
 import com.transaction.domain.entity.Transaction;
@@ -7,13 +8,39 @@ import com.transaction.domain.enums.TransactionStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
  * Mapper para conversões entre DTOs e entidades de Transaction
  */
 public class TransactionMapper {
-    
+
+    /**
+     * Converte TransactionRequest para Transaction
+     */
+    public static Transaction requestTonewTransaction(NewTransactionRequest request) {
+        if (request == null) {
+            return null;
+        }
+
+        Transaction transaction = new Transaction();
+        transaction.setTransactionId(UUID.randomUUID().toString());
+        transaction.setType(request.getType());
+        transaction.setFromCurrencyPrefix(request.getFromCurrencyPrefix());
+        transaction.setToCurrencyPrefix(request.getToCurrencyPrefix());
+        transaction.setFromProductId(request.getFromProductId());
+        transaction.setToProductId(request.getToProductId());
+        transaction.setKingdomId(request.getKingdomId());
+        transaction.setKingdomName(request.getKingdomName());
+        transaction.setReason(request.getReason());
+        transaction.setStatus(TransactionStatus.REQUESTED);
+        transaction.setCreatedAt(LocalDateTime.now());
+        transaction.setUpdatedAt(LocalDateTime.now());
+
+        return transaction;
+    }
+
     /**
      * Converte TransactionRequest para Transaction
      */
@@ -23,7 +50,6 @@ public class TransactionMapper {
         }
         
         Transaction transaction = new Transaction();
-        transaction.setTransactionId(request.getTransactionId());
         transaction.setType(request.getType());
         transaction.setOriginalAmount(request.getOriginalAmount());
         transaction.setFromCurrencyPrefix(request.getFromCurrencyPrefix());
@@ -40,11 +66,7 @@ public class TransactionMapper {
         transaction.setCreatedAt(LocalDateTime.now());
         transaction.setUpdatedAt(LocalDateTime.now());
         
-        // Calcular valor convertido
-        if (request.getOriginalAmount() != null && request.getExchangeRate() != null) {
-            transaction.setConvertedAmount(request.getOriginalAmount().multiply(request.getExchangeRate()));
-        }
-        
+
         return transaction;
     }
     
@@ -112,11 +134,7 @@ public class TransactionMapper {
         transaction.setKingdomName(request.getKingdomName());
         transaction.setReason(request.getReason());
         transaction.setUpdatedAt(LocalDateTime.now());
-        
-        // Recalcular valor convertido
-        if (request.getOriginalAmount() != null && request.getExchangeRate() != null) {
-            transaction.setConvertedAmount(request.getOriginalAmount().multiply(request.getExchangeRate()));
-        }
+
     }
     
     /**

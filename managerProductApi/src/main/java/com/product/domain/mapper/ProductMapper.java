@@ -29,8 +29,6 @@ public class ProductMapper {
         response.setBaseValue(product.getBaseValue());
         response.setDemandQuantifier(product.getDemandQuantifier());
         response.setQualityQualifier(product.getQualityQualifier());
-        response.setFinalValue(product.calculateFinalValue());
-        response.setTotalMultiplier(product.calculateTotalMultiplier());
         response.setKingdom(KingdomMapper.kingdomToKingdomResponse(product.getKingdom()));
         response.setIsActive(product.getIsActive());
         response.setCreatedAt(product.getCreatedAt());

@@ -1,10 +1,13 @@
 package com.transaction.domain.dto;
 
 import com.transaction.domain.enums.TransactionType;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
 
@@ -14,15 +17,12 @@ import java.math.BigDecimal;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TransactionRequest {
+public class NewTransactionRequest {
     
     @NotNull(message = "Tipo de transação é obrigatório")
     private TransactionType type;
     
-    @NotNull(message = "Valor original é obrigatório")
-    @DecimalMin(value = "0.01", message = "Valor original deve ser pelo menos 0.01")
-    private BigDecimal originalAmount;
-    
+
     @NotBlank(message = "Moeda de origem é obrigatória")
     @Size(min = 2, max = 10, message = "Moeda de origem deve ter entre 2 e 10 caracteres")
     private String fromCurrencyPrefix;
@@ -30,16 +30,10 @@ public class TransactionRequest {
     @NotBlank(message = "Moeda de destino é obrigatória")
     @Size(min = 2, max = 10, message = "Moeda de destino deve ter entre 2 e 10 caracteres")
     private String toCurrencyPrefix;
-    
-    @NotNull(message = "Taxa de câmbio é obrigatória")
-    @DecimalMin(value = "0.0001", message = "Taxa de câmbio deve ser pelo menos 0.0001")
-    private BigDecimal exchangeRate;
-    
+
     // Para EXCHANGE
     private Long fromProductId;           // opcional
-    private String fromProductName;       // opcional
     private Long toProductId;             // opcional
-    private String toProductName;         // opcional
     
     // Reino
     private Long kingdomId;               // opcional

@@ -48,9 +48,9 @@ spring:
     activate:
       on-profile: dev
   datasource:
-    url: jdbc:postgresql://localhost:5434/changeapp_product_dev
-    username: changeapp_product
-    password: changeapp_product123
+    url: jdbc:postgresql://localhost:5433/changeapp_product_dev
+    username: changeapp
+    password: changeapp123
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

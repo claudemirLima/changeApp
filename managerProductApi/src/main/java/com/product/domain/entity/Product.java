@@ -2,6 +2,7 @@ package com.product.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "products")
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Product {
@@ -54,31 +56,8 @@ public class Product {
     
     @Column(name = "deactivated_at")
     private LocalDateTime deactivatedAt;
-    
-    // Construtor customizado
-    public Product(String name, String description, String category, BigDecimal baseValue, 
-                  BigDecimal demandQuantifier, BigDecimal qualityQualifier, Kingdom kingdom) {
-        this();
-        this.name = name;
-        this.description = description;
-        this.category = category;
-        this.baseValue = baseValue;
-        this.demandQuantifier = demandQuantifier;
-        this.qualityQualifier = qualityQualifier;
-        this.kingdom = kingdom;
-    }
-    
-    // Construtor padrão com inicialização
-    public Product() {
-        this.createdAt = LocalDateTime.now();
-    }
-    
-    // Métodos de lifecycle
-    @PreUpdate
-    public void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
-    
+
+
     // Métodos de negócio
     public void deactivate() {
         this.isActive = false;
@@ -90,42 +69,5 @@ public class Product {
         this.isActive = true;
         this.deactivatedAt = null;
         this.updatedAt = LocalDateTime.now();
-    }
-    
-    public BigDecimal calculateFinalValue() {
-        return baseValue.multiply(calculateTotalMultiplier());
-    }
-    
-    public boolean isHighDemand() {
-        return this.demandQuantifier != null && 
-               this.demandQuantifier.compareTo(BigDecimal.valueOf(2.0)) >= 0;
-    }
-    
-    public boolean isLowDemand() {
-        return this.demandQuantifier != null && 
-               this.demandQuantifier.compareTo(BigDecimal.valueOf(0.5)) <= 0;
-    }
-    
-    public boolean isHighQuality() {
-        return this.qualityQualifier != null && 
-               this.qualityQualifier.compareTo(BigDecimal.valueOf(2.0)) >= 0;
-    }
-    
-    public boolean isLowQuality() {
-        return this.qualityQualifier != null && 
-               this.qualityQualifier.compareTo(BigDecimal.valueOf(0.5)) <= 0;
-    }
-    
-    public boolean isFromOwnerKingdom() {
-        return this.kingdom != null && Boolean.TRUE.equals(this.kingdom.getIsOwner());
-    }
-    
-    public BigDecimal calculateTotalMultiplier() {
-        BigDecimal kingdomMultiplier = kingdom != null ? kingdom.getQualityRate() : BigDecimal.ONE;
-        BigDecimal ownerMultiplier = isFromOwnerKingdom() ? BigDecimal.valueOf(1.2) : BigDecimal.ONE;
-        return demandQuantifier
-            .multiply(qualityQualifier)
-            .multiply(kingdomMultiplier)
-            .multiply(ownerMultiplier);
     }
 } 

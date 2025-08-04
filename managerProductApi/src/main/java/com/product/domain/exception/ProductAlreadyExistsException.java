@@ -4,11 +4,7 @@ package com.product.domain.exception;
  * Exceção lançada quando um produto já existe
  */
 public class ProductAlreadyExistsException extends RuntimeException {
-    
-    public ProductAlreadyExistsException(String message) {
-        super(message);
-    }
-    
+
     public ProductAlreadyExistsException(String message, Throwable cause) {
         super(message, cause);
     }

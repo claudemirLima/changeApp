@@ -21,8 +21,6 @@ public class ProductResponse {
     private BigDecimal baseValue;
     private BigDecimal demandQuantifier;
     private BigDecimal qualityQualifier;
-    private BigDecimal finalValue;
-    private BigDecimal totalMultiplier;
     private KingdomResponse kingdom;
     private Boolean isActive;
     private LocalDateTime createdAt;

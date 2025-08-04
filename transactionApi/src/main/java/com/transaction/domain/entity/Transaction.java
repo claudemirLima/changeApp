@@ -22,7 +22,6 @@ import java.time.LocalDateTime;
 public class Transaction {
     
     @Id
-    @Field("transaction_id")
     private String transactionId;         // UUID do ExchangeApi como chave primária
     
     // Dados da Transação
