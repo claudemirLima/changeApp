@@ -17,7 +17,6 @@ import java.util.UUID;
 public class TransactionData {
     
     private UUID transactionId;
-    private BigDecimal originalAmount;
     private BigDecimal convertedAmount;
     private BigDecimal rate;
     private String fromCurrencyCode;
@@ -38,12 +37,11 @@ public class TransactionData {
     private LocalDateTime expiresAt;
     
     // Construtor customizado
-    public TransactionData(UUID transactionId, BigDecimal originalAmount, BigDecimal convertedAmount, 
+    public TransactionData(UUID transactionId, BigDecimal convertedAmount,
                           BigDecimal rate, String fromCurrencyCode, String toCurrencyCode, 
                           Long productId, TransactionStatus status, String reason, 
                           BigDecimal riskScore, List<String> warnings, List<String> recommendations) {
         this.transactionId = transactionId;
-        this.originalAmount = originalAmount;
         this.convertedAmount = convertedAmount;
         this.rate = rate;
         this.fromCurrencyCode = fromCurrencyCode;

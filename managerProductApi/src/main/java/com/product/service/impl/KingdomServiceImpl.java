@@ -26,8 +26,7 @@ public class KingdomServiceImpl implements KingdomService {
     
     @Autowired
     private KingdomRepository kingdomRepository;
-    
-    // ===== MÉTODOS BÁSICOS =====
+
     
     @Override
     @Transactional
@@ -122,100 +121,7 @@ public class KingdomServiceImpl implements KingdomService {
         return kingdomRepository.findAllActiveWithPagination(pageable);
     }
     
-    @Override
-    @Transactional(readOnly = true)
-    public List<Kingdom> getAllActiveKingdoms() {
-        return kingdomRepository.findAllActive();
-    }
-    
-    // ===== MÉTODOS DE CONSULTA ESPECÍFICA =====
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<Kingdom> getOwnerKingdoms() {
-        return kingdomRepository.findOwnerKingdoms();
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<Kingdom> getHighQualityKingdoms() {
-        return kingdomRepository.findHighQualityKingdoms();
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<Kingdom> getLowQualityKingdoms() {
-        return kingdomRepository.findLowQualityKingdoms();
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public List<Kingdom> getKingdomsByQualityRange(BigDecimal minQuality, BigDecimal maxQuality) {
-        if (minQuality == null || maxQuality == null) {
-            throw new IllegalArgumentException("Range de qualidade não pode ser nulo");
-        }
-        
-        if (minQuality.compareTo(maxQuality) > 0) {
-            throw new IllegalArgumentException("Qualidade mínima não pode ser maior que a máxima");
-        }
-        
-        return kingdomRepository.findByQualityRange(minQuality, maxQuality);
-    }
-    
-    // ===== MÉTODOS DE CONTAGEM =====
-    
-    @Override
-    @Transactional(readOnly = true)
-    public long countActiveKingdoms() {
-        return kingdomRepository.countActive();
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public long countOwnerKingdoms() {
-        return kingdomRepository.countOwnerKingdoms();
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public long countHighQualityKingdoms() {
-        return kingdomRepository.countHighQualityKingdoms();
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public long countLowQualityKingdoms() {
-        return kingdomRepository.countLowQualityKingdoms();
-    }
-    
-    // ===== MÉTODOS DE VALIDAÇÃO =====
-    
-    @Override
-    @Transactional(readOnly = true)
-    public boolean existsAndActive(Long id) {
-        return kingdomRepository.existsActiveById(id);
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public boolean existsByName(String name) {
-        return kingdomRepository.existsActiveByName(name);
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public boolean hasOwnerKingdom() {
-        return kingdomRepository.hasOwnerKingdom();
-    }
-    
-    @Override
-    @Transactional(readOnly = true)
-    public boolean isOwnerKingdom(Long id) {
-        return kingdomRepository.isOwnerKingdom(id)
-            .orElse(false);
-    }
-    
-    // ===== MÉTODOS PRIVADOS =====
+
     
     /**
      * Valida os dados de entrada para criação/atualização de reino

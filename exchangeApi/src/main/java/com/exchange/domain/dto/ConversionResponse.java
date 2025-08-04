@@ -14,7 +14,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ConversionResponse {
-    private BigDecimal originalAmount;
     private BigDecimal convertedAmount;
     private BigDecimal rate;
     private String fromCurrencyCode;
@@ -37,9 +36,8 @@ public class ConversionResponse {
     private String confirmationUrl;
     
     // Construtor customizado para conversão básica
-    public ConversionResponse(BigDecimal originalAmount, BigDecimal convertedAmount, BigDecimal rate,
+    public ConversionResponse(BigDecimal convertedAmount, BigDecimal rate,
                             String fromCurrencyCode, String toCurrencyCode) {
-        this.originalAmount = originalAmount;
         this.convertedAmount = convertedAmount;
         this.rate = rate;
         this.fromCurrencyCode = fromCurrencyCode;

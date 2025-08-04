@@ -7,7 +7,9 @@ import com.exchange.domain.entity.ProductExchangeRate;
 import com.exchange.domain.enums.TransactionStatus;
 import com.exchange.service.ExchangeRateService;
 import com.exchange.service.ProductExchangeRateService;
+import com.exchange.service.ProductApiService;
 import com.exchange.service.impl.RiskAnalysisServiceImpl;
+import com.exchange.util.ConversionCalculator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -27,8 +29,26 @@ public class ProductConversionStrategy implements ConversionStrategy {
     @Autowired
     private RiskAnalysisServiceImpl riskAnalysisService;
     
+    @Autowired
+    private ProductApiService productApiService;
+    
+    @Autowired
+    private ConversionCalculator conversionCalculator;
+    
     @Override
     public ConversionResponse convert(ConversionRequest request) {
+        // Buscar informações do produto
+        var productInfo = productApiService.getProductInfo(request.getProductId());
+        if (productInfo == null) {
+            return createErrorResponse("Produto não encontrado: " + request.getProductId());
+        }
+        
+        // Buscar informações do reino
+        var kingdomInfo = productApiService.getKingdomInfo(productInfo.getKingdomId());
+        if (kingdomInfo == null) {
+            return createErrorResponse("Reino não encontrado: " + productInfo.getKingdomId());
+        }
+        
         // Buscar taxa de câmbio base
         ExchangeRate baseRate = exchangeRateService.getActiveRate(
             request.getFromCurrencyCode(), 
@@ -46,45 +66,32 @@ public class ProductConversionStrategy implements ConversionStrategy {
             request.getToCurrencyCode()
         );
         
-        BigDecimal finalRate = baseRate.getRate();
-        BigDecimal productMultiplier = BigDecimal.ONE;
-        
-        if (productRate != null) {
-            finalRate = productRate.getBaseRate();
-            productMultiplier = productRate.getProductMultiplier();
-        }
-        
-        // Calcular conversão com multiplicador do produto
-        BigDecimal convertedAmount = request.getAmount()
-            .multiply(finalRate)
-            .multiply(productMultiplier)
-            .setScale(2, RoundingMode.HALF_UP);
+        // Calcular conversão usando o utilitário
+        BigDecimal originalQuantity = BigDecimal.valueOf(request.getQuantityProduct());
+        BigDecimal convertedAmount = conversionCalculator.calculateProductConversion(
+            originalQuantity, baseRate, productRate, productInfo, kingdomInfo);
         
         // Criar response
         ConversionResponse response = new ConversionResponse(
-            request.getAmount(),
             convertedAmount,
-            finalRate,
+            baseRate.getRate(),
             request.getFromCurrencyCode(),
             request.getToCurrencyCode()
         );
         
         // Aplicar análise de risco
-        riskAnalysisService.analyzeRisk(response, finalRate, request, productMultiplier);
+        riskAnalysisService.analyzeRisk(response, baseRate.getRate(), request, BigDecimal.ONE);
         
         return response;
     }
     
     @Override
     public boolean supports(ConversionRequest request) {
-        // Estratégia de produto suporta conversões com productId
+        // Estratégia de produto suporta apenas conversões com productId
         return request.getProductId() != null && request.getProductId() > 0;
     }
     
-    @Override
-    public int getPriority() {
-        return 50; // Prioridade média - mais específica que a padrão
-    }
+
     
     private ConversionResponse createErrorResponse(String reason) {
         ConversionResponse response = new ConversionResponse();

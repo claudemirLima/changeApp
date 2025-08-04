@@ -31,6 +31,8 @@ public class TransactionMapper {
         transaction.setToCurrencyPrefix(request.getToCurrencyPrefix());
         transaction.setFromProductId(request.getFromProductId());
         transaction.setToProductId(request.getToProductId());
+        transaction.setQuantityProduct(request.getQuantityProduct());
+        transaction.setQuantityCurrency(request.getQuantityCurrency());
         transaction.setKingdomId(request.getKingdomId());
         transaction.setKingdomName(request.getKingdomName());
         transaction.setReason(request.getReason());
@@ -51,10 +53,11 @@ public class TransactionMapper {
         
         Transaction transaction = new Transaction();
         transaction.setType(request.getType());
-        transaction.setOriginalAmount(request.getOriginalAmount());
         transaction.setFromCurrencyPrefix(request.getFromCurrencyPrefix());
         transaction.setToCurrencyPrefix(request.getToCurrencyPrefix());
         transaction.setExchangeRate(request.getExchangeRate());
+        transaction.setQuantityProduct(request.getQuantityProduct());
+        transaction.setQuantityCurrency(request.getQuantityCurrency());
         transaction.setFromProductId(request.getFromProductId());
         transaction.setFromProductName(request.getFromProductName());
         transaction.setToProductId(request.getToProductId());
@@ -82,8 +85,9 @@ public class TransactionMapper {
         response.setTransactionId(transaction.getTransactionId());
         response.setType(transaction.getType());
         response.setStatus(transaction.getStatus());
-        response.setOriginalAmount(transaction.getOriginalAmount());
         response.setConvertedAmount(transaction.getConvertedAmount());
+        response.setQuantityProduct(transaction.getQuantityProduct());
+        response.setQuantityCurrency(transaction.getQuantityCurrency());
         response.setFromCurrencyPrefix(transaction.getFromCurrencyPrefix());
         response.setToCurrencyPrefix(transaction.getToCurrencyPrefix());
         response.setExchangeRate(transaction.getExchangeRate());
@@ -122,7 +126,6 @@ public class TransactionMapper {
         }
         
         transaction.setType(request.getType());
-        transaction.setOriginalAmount(request.getOriginalAmount());
         transaction.setFromCurrencyPrefix(request.getFromCurrencyPrefix());
         transaction.setToCurrencyPrefix(request.getToCurrencyPrefix());
         transaction.setExchangeRate(request.getExchangeRate());
@@ -149,7 +152,6 @@ public class TransactionMapper {
         copy.setTransactionId(transaction.getTransactionId());
         copy.setType(transaction.getType());
         copy.setStatus(transaction.getStatus());
-        copy.setOriginalAmount(transaction.getOriginalAmount());
         copy.setConvertedAmount(transaction.getConvertedAmount());
         copy.setFromCurrencyPrefix(transaction.getFromCurrencyPrefix());
         copy.setToCurrencyPrefix(transaction.getToCurrencyPrefix());

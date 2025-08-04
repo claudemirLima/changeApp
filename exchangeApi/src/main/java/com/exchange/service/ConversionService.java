@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.UUID;
 
-import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -45,17 +44,16 @@ public class ConversionService {
             response.setExpiresAt(java.time.LocalDateTime.now().plusMinutes(30));
             response.setConfirmationUrl("/api/v1/transactions/" + transactionId + "/confirm");
         }
-        
         return response;
     }
     
     /**
-     * Encontra a melhor estratégia baseada na prioridade e suporte
+     * Encontra a estratégia mais apropriada baseada no suporte
      */
     private ConversionStrategy findBestStrategy(ConversionRequest request) {
         return conversionStrategies.stream()
             .filter(strategy -> strategy.supports(request))
-            .min(Comparator.comparingInt(ConversionStrategy::getPriority))
+            .findFirst()
             .orElse(null);
     }
     
@@ -73,10 +71,6 @@ public class ConversionService {
         
         if (request.getToCurrencyCode() == null || request.getToCurrencyCode().trim().isEmpty()) {
             throw new IllegalArgumentException("Código da moeda de destino é obrigatório");
-        }
-        
-        if (request.getAmount() == null || request.getAmount().compareTo(java.math.BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Valor deve ser maior que zero");
         }
         
         if (request.getFromCurrencyCode().equals(request.getToCurrencyCode())) {

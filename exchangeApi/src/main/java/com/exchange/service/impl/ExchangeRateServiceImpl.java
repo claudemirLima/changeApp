@@ -26,9 +26,7 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
     
     @Autowired
     private CurrencyService currencyService;
-    
-    // ===== MÉTODOS BÁSICOS =====
-    
+
     @Override
     @Transactional(readOnly = true)
     public ExchangeRate getActiveRate(String fromCurrencyPrefix, String toCurrencyPrefix) {

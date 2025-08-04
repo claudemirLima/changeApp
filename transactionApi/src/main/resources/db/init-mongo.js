@@ -30,19 +30,5 @@ db.createCollection('transactions');
 
 
 
-// Repetir índices para outros ambientes
-db = db.getSiblingDB('changeapp_transactions_dev');
-db.transactions.createIndex({ "transactionId": 1 }, { unique: true });
-db.transactions.createIndex({ "type": 1 });
-db.transactions.createIndex({ "status": 1 });
-db.transactions.createIndex({ "fromCurrencyPrefix": 1 });
-db.transactions.createIndex({ "toCurrencyPrefix": 1 });
-db.transactions.createIndex({ "kingdomId": 1 });
-db.transactions.createIndex({ "fromProductId": 1 });
-db.transactions.createIndex({ "toProductId": 1 });
-db.transactions.createIndex({ "createdAt": 1 });
-db.transactions.createIndex({ "originalAmount": 1 });
-db.transactions.createIndex({ "type": 1, "status": 1 });
-db.transactions.createIndex({ "fromCurrencyPrefix": 1, "toCurrencyPrefix": 1 });
-db.transactions.createIndex({ "kingdomId": 1, "status": 1 });
+
 

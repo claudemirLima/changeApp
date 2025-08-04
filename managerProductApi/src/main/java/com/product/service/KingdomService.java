@@ -12,8 +12,7 @@ import java.util.List;
  */
 public interface KingdomService {
     
-    // ===== MÉTODOS BÁSICOS =====
-    
+
     /**
      * Cria um novo reino
      */
@@ -53,75 +52,6 @@ public interface KingdomService {
      * Lista todos os reinos ativos com paginação
      */
     Page<Kingdom> getAllActiveKingdoms(Pageable pageable);
-    
-    /**
-     * Lista todos os reinos ativos
-     */
-    List<Kingdom> getAllActiveKingdoms();
-    
-    // ===== MÉTODOS DE CONSULTA ESPECÍFICA =====
-    
-    /**
-     * Lista todos os reinos proprietários
-     */
-    List<Kingdom> getOwnerKingdoms();
-    
-    /**
-     * Lista reinos de alta qualidade (qualityRate >= 1.5)
-     */
-    List<Kingdom> getHighQualityKingdoms();
-    
-    /**
-     * Lista reinos de baixa qualidade (qualityRate <= 0.5)
-     */
-    List<Kingdom> getLowQualityKingdoms();
-    
-    /**
-     * Busca reinos por range de qualidade
-     */
-    List<Kingdom> getKingdomsByQualityRange(BigDecimal minQuality, BigDecimal maxQuality);
-    
-    // ===== MÉTODOS DE CONTAGEM =====
-    
-    /**
-     * Conta o número de reinos ativos
-     */
-    long countActiveKingdoms();
-    
-    /**
-     * Conta o número de reinos proprietários
-     */
-    long countOwnerKingdoms();
-    
-    /**
-     * Conta o número de reinos de alta qualidade
-     */
-    long countHighQualityKingdoms();
-    
-    /**
-     * Conta o número de reinos de baixa qualidade
-     */
-    long countLowQualityKingdoms();
-    
-    // ===== MÉTODOS DE VALIDAÇÃO =====
-    
-    /**
-     * Verifica se um reino existe e está ativo
-     */
-    boolean existsAndActive(Long id);
-    
-    /**
-     * Verifica se um reino com o nome existe
-     */
-    boolean existsByName(String name);
-    
-    /**
-     * Verifica se existe algum reino proprietário
-     */
-    boolean hasOwnerKingdom();
-    
-    /**
-     * Verifica se um reino é proprietário
-     */
-    boolean isOwnerKingdom(Long id);
+
+
 } 

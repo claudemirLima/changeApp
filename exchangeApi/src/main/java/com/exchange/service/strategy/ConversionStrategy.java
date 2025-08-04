@@ -15,8 +15,5 @@ public interface ConversionStrategy {
      */
     boolean supports(ConversionRequest request);
     
-    /**
-     * Retorna a prioridade da estratégia (menor número = maior prioridade)
-     */
-    int getPriority();
+
 } 

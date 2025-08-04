@@ -22,11 +22,10 @@ import java.time.LocalDateTime;
 public class Transaction {
     
     @Id
-    private String transactionId;         // UUID do ExchangeApi como chave primária
+    private String id;                    // ID do MongoDB
     
-    // Dados da Transação
-    @Field("original_amount")
-    private BigDecimal originalAmount;     // Valor original
+    @Field("transaction_id")
+    private String transactionId;         // UUID da aplicação como campo indexado
     
     @Field("converted_amount")
     private BigDecimal convertedAmount;    // Valor convertido
@@ -39,6 +38,13 @@ public class Transaction {
     
     @Field("exchange_rate")
     private BigDecimal exchangeRate;       // Taxa aplicada
+    
+    // Quantidades
+    @Field("quantity_product")
+    private Integer quantityProduct;       // Quantidade de produto
+    
+    @Field("quantity_currency")
+    private Float quantityCurrency;        // Quantidade de moeda
     
     // Produto Origem (para EXCHANGE)
     @Field("from_product_id")
@@ -77,14 +83,16 @@ public class Transaction {
     private LocalDateTime completedAt;
     
     // Construtor customizado
-    public Transaction(String transactionId, TransactionType type, BigDecimal originalAmount, 
-                      String fromCurrencyPrefix, String toCurrencyPrefix, BigDecimal exchangeRate) {
+    public Transaction(String transactionId, TransactionType type,
+                      String fromCurrencyPrefix, String toCurrencyPrefix, BigDecimal exchangeRate,
+                      Integer quantityProduct, Float quantityCurrency) {
         this.transactionId = transactionId;
         this.type = type;
-        this.originalAmount = originalAmount;
         this.fromCurrencyPrefix = fromCurrencyPrefix;
         this.toCurrencyPrefix = toCurrencyPrefix;
         this.exchangeRate = exchangeRate;
+        this.quantityProduct = quantityProduct;
+        this.quantityCurrency = quantityCurrency;
         this.status = TransactionStatus.REQUESTED;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();

@@ -67,7 +67,6 @@ public class TransactionServiceImpl implements TransactionService {
     public TransactionData createTransactionData(UUID transactionId, ConversionRequest request, ConversionResponse response) {
         return new TransactionData(
             transactionId,
-            response.getOriginalAmount(),
             response.getConvertedAmount(),
             response.getRate(),
             response.getFromCurrencyCode(),

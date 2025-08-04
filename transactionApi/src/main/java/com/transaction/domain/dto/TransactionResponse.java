@@ -20,8 +20,9 @@ public class TransactionResponse {
     private String transactionId;         // UUID do ExchangeApi
     private TransactionType type;
     private TransactionStatus status;
-    private BigDecimal originalAmount;
     private BigDecimal convertedAmount;
+    private Integer quantityProduct;
+    private Float quantityCurrency;
     private String fromCurrencyPrefix;
     private String toCurrencyPrefix;
     private BigDecimal exchangeRate;

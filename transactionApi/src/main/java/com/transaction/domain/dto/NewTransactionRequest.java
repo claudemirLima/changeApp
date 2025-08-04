@@ -21,7 +21,10 @@ public class NewTransactionRequest {
     
     @NotNull(message = "Tipo de transação é obrigatório")
     private TransactionType type;
-    
+
+    private Integer quantityProduct;
+
+    private Float quantityCurrency;
 
     @NotBlank(message = "Moeda de origem é obrigatória")
     @Size(min = 2, max = 10, message = "Moeda de origem deve ter entre 2 e 10 caracteres")

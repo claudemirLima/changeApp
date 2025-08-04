@@ -1,5 +1,6 @@
 package com.transaction.service.impl;
 
+import com.transaction.domain.dto.ConversionRequest;
 import com.transaction.domain.dto.NewTransactionRequest;
 import com.transaction.domain.dto.TransactionRequest;
 import com.transaction.domain.dto.TransactionResponse;
@@ -8,6 +9,7 @@ import com.transaction.domain.enums.TransactionStatus;
 import com.transaction.domain.enums.TransactionType;
 import com.transaction.domain.mapper.TransactionMapper;
 import com.transaction.repository.TransactionRepository;
+import com.transaction.service.ConversionService;
 import com.transaction.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +34,7 @@ import java.util.stream.Collectors;
 public class TransactionServiceImpl implements TransactionService {
     
     private final TransactionRepository transactionRepository;
+    private final ConversionService conversionService;
     
     @Override
     public TransactionResponse createTransaction(NewTransactionRequest request) {
@@ -40,7 +43,38 @@ public class TransactionServiceImpl implements TransactionService {
         
         Transaction savedTransaction = transactionRepository.save(transaction);
         log.info("Transação criada com sucesso: {}", savedTransaction.getTransactionId());
-        
+
+        try {
+            ConversionRequest conversionRequest = new ConversionRequest();
+            conversionRequest.setFromCurrencyCode(request.getFromCurrencyPrefix());
+            conversionRequest.setToCurrencyCode(request.getToCurrencyPrefix());
+            conversionRequest.setProductId(request.getFromProductId());
+            conversionRequest.setTransactionId(savedTransaction.getTransactionId());
+
+
+            // Definir quantidade baseada no tipo de transação
+            if (request.getQuantityProduct() != null) {
+                conversionRequest.setQuantityProduct(request.getQuantityProduct());
+            }
+            if (request.getQuantityCurrency() != null) {
+                conversionRequest.setQuantityCurrency(request.getQuantityCurrency());
+            }
+            
+            // Definir reino
+            if (request.getKingdomId() != null) {
+                conversionRequest.setKingdomId(request.getKingdomId());
+            }
+
+            // Enviar comando de conversão via ConversionService
+            conversionService.requestConversion(conversionRequest);
+
+            log.info("Comando de conversão enviado para transação: {}", savedTransaction.getTransactionId());
+
+        } catch (Exception e) {
+            log.error("Erro ao enviar comando de conversão para transação: {}", savedTransaction.getTransactionId(), e);
+            // Não falha a criação da transação se a conversão falhar
+        }
+
         return TransactionMapper.transactionToResponse(savedTransaction);
     }
     
@@ -50,7 +84,7 @@ public class TransactionServiceImpl implements TransactionService {
         return transactionRepository.findByTransactionId(transactionId)
                 .map(TransactionMapper::transactionToResponse);
     }
-    
+
     @Override
     public List<TransactionResponse> getAllTransactions() {
         log.debug("Buscando todas as transações");
@@ -100,129 +134,7 @@ public class TransactionServiceImpl implements TransactionService {
                 .map(TransactionMapper::transactionToResponse)
                 .collect(Collectors.toList());
     }
-    
-    @Override
-    public Page<TransactionResponse> getTransactionsByStatus(TransactionStatus status, Pageable pageable) {
-        log.debug("Buscando transações por status paginadas: {}", status);
-        return transactionRepository.findByStatus(status, pageable)
-                .map(TransactionMapper::transactionToResponse);
-    }
-    
-    @Override
-    public List<TransactionResponse> getTransactionsByType(TransactionType type) {
-        log.debug("Buscando transações por tipo: {}", type);
-        return transactionRepository.findByType(type).stream()
-                .map(TransactionMapper::transactionToResponse)
-                .collect(Collectors.toList());
-    }
-    
-    @Override
-    public Page<TransactionResponse> getTransactionsByType(TransactionType type, Pageable pageable) {
-        log.debug("Buscando transações por tipo paginadas: {}", type);
-        return transactionRepository.findByType(type, pageable)
-                .map(TransactionMapper::transactionToResponse);
-    }
-    
-    @Override
-    public List<TransactionResponse> getTransactionsByTypeAndStatus(TransactionType type, TransactionStatus status) {
-        log.debug("Buscando transações por tipo e status: {} - {}", type, status);
-        return transactionRepository.findByTypeAndStatus(type, status).stream()
-                .map(TransactionMapper::transactionToResponse)
-                .collect(Collectors.toList());
-    }
-    
-    @Override
-    public Page<TransactionResponse> getTransactionsByTypeAndStatus(TransactionType type, TransactionStatus status, Pageable pageable) {
-        log.debug("Buscando transações por tipo e status paginadas: {} - {}", type, status);
-        return transactionRepository.findByTypeAndStatus(type, status, pageable)
-                .map(TransactionMapper::transactionToResponse);
-    }
-    
-    @Override
-    public List<TransactionResponse> getTransactionsByFromCurrency(String fromCurrencyPrefix) {
-        log.debug("Buscando transações por moeda origem: {}", fromCurrencyPrefix);
-        return transactionRepository.findByFromCurrencyPrefix(fromCurrencyPrefix).stream()
-                .map(TransactionMapper::transactionToResponse)
-                .collect(Collectors.toList());
-    }
-    
-    @Override
-    public List<TransactionResponse> getTransactionsByToCurrency(String toCurrencyPrefix) {
-        log.debug("Buscando transações por moeda destino: {}", toCurrencyPrefix);
-        return transactionRepository.findByToCurrencyPrefix(toCurrencyPrefix).stream()
-                .map(TransactionMapper::transactionToResponse)
-                .collect(Collectors.toList());
-    }
-    
-    @Override
-    public List<TransactionResponse> getTransactionsByKingdom(Long kingdomId) {
-        log.debug("Buscando transações por reino: {}", kingdomId);
-        return transactionRepository.findByKingdomId(kingdomId).stream()
-                .map(TransactionMapper::transactionToResponse)
-                .collect(Collectors.toList());
-    }
-    
-    @Override
-    public Page<TransactionResponse> getTransactionsByKingdom(Long kingdomId, Pageable pageable) {
-        log.debug("Buscando transações por reino paginadas: {}", kingdomId);
-        return transactionRepository.findByKingdomId(kingdomId, pageable)
-                .map(TransactionMapper::transactionToResponse);
-    }
-    
-    @Override
-    public List<TransactionResponse> getTransactionsByFromProduct(Long fromProductId) {
-        log.debug("Buscando transações por produto origem: {}", fromProductId);
-        return transactionRepository.findByFromProductId(fromProductId).stream()
-                .map(TransactionMapper::transactionToResponse)
-                .collect(Collectors.toList());
-    }
-    
-    @Override
-    public List<TransactionResponse> getTransactionsByToProduct(Long toProductId) {
-        log.debug("Buscando transações por produto destino: {}", toProductId);
-        return transactionRepository.findByToProductId(toProductId).stream()
-                .map(TransactionMapper::transactionToResponse)
-                .collect(Collectors.toList());
-    }
-    
-    @Override
-    public List<TransactionResponse> getTransactionsByPeriod(LocalDateTime startDate, LocalDateTime endDate) {
-        log.debug("Buscando transações por período: {} até {}", startDate, endDate);
-        return transactionRepository.findByCreatedAtBetween(startDate, endDate).stream()
-                .map(TransactionMapper::transactionToResponse)
-                .collect(Collectors.toList());
-    }
-    
-    @Override
-    public Page<TransactionResponse> getTransactionsByPeriod(LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
-        log.debug("Buscando transações por período paginadas: {} até {}", startDate, endDate);
-        return transactionRepository.findByCreatedAtBetween(startDate, endDate, pageable)
-                .map(TransactionMapper::transactionToResponse);
-    }
-    
-    @Override
-    public List<TransactionResponse> getTransactionsByAmountRange(BigDecimal minAmount, BigDecimal maxAmount) {
-        log.debug("Buscando transações por faixa de valor: {} até {}", minAmount, maxAmount);
-        return transactionRepository.findByOriginalAmountBetween(minAmount, maxAmount).stream()
-                .map(TransactionMapper::transactionToResponse)
-                .collect(Collectors.toList());
-    }
-    
-    @Override
-    public List<TransactionResponse> getTransactionsByMinAmount(BigDecimal minAmount) {
-        log.debug("Buscando transações por valor mínimo: {}", minAmount);
-        return transactionRepository.findByOriginalAmountGreaterThanEqual(minAmount).stream()
-                .map(TransactionMapper::transactionToResponse)
-                .collect(Collectors.toList());
-    }
-    
-    @Override
-    public List<TransactionResponse> getTransactionsByMaxAmount(BigDecimal maxAmount) {
-        log.debug("Buscando transações por valor máximo: {}", maxAmount);
-        return transactionRepository.findByOriginalAmountLessThanEqual(maxAmount).stream()
-                .map(TransactionMapper::transactionToResponse)
-                .collect(Collectors.toList());
-    }
+
     
     @Override
     public TransactionResponse approveTransaction(String transactionId) {
@@ -265,55 +177,23 @@ public class TransactionServiceImpl implements TransactionService {
         log.info("Transação completada com sucesso: {}", transactionId);
         return TransactionMapper.transactionToResponse(savedTransaction);
     }
-    
-    @Override
-    public boolean existsTransaction(String transactionId) {
-        return transactionRepository.existsByTransactionId(transactionId);
-    }
-    
-    @Override
-    public boolean isValidTransaction(String transactionId) {
-        return transactionRepository.findByTransactionId(transactionId)
-                .map(transaction -> TransactionStatus.APPROVED.equals(transaction.getStatus()))
-                .orElse(false);
-    }
-    
-    @Override
-    public long countTransactionsByStatus(TransactionStatus status) {
-        return transactionRepository.countByStatus(status);
-    }
-    
-    @Override
-    public long countTransactionsByType(TransactionType type) {
-        return transactionRepository.countByType(type);
-    }
-    
-    @Override
-    public long countTransactionsByKingdom(Long kingdomId) {
-        return transactionRepository.countByKingdomId(kingdomId);
-    }
-    
-    @Override
-    public BigDecimal getTotalVolumeByPeriod(LocalDateTime startDate, LocalDateTime endDate) {
-        return transactionRepository.findByCreatedAtBetween(startDate, endDate).stream()
-                .map(Transaction::getOriginalAmount)
-                .filter(amount -> amount != null)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-    
-    @Override
-    public BigDecimal getAverageAmountByPeriod(LocalDateTime startDate, LocalDateTime endDate) {
-        List<Transaction> transactions = transactionRepository.findByCreatedAtBetween(startDate, endDate);
-        
-        if (transactions.isEmpty()) {
-            return BigDecimal.ZERO;
+
+    /**
+     * Envia comando de conversão para processamento via Kafka
+     */
+    public void sendConversionCommand(ConversionRequest conversionRequest) {
+        try {
+            log.info("Enviando comando de conversão para moedas {} -> {}", 
+                    conversionRequest.getFromCurrencyCode(), conversionRequest.getToCurrencyCode());
+            
+            // Enviar comando de conversão via ConversionService
+            conversionService.requestConversion(conversionRequest);
+            
+            log.info("Comando de conversão enviado com sucesso");
+            
+        } catch (Exception e) {
+            log.error("Erro ao enviar comando de conversão", e);
+            throw new RuntimeException("Erro ao enviar comando de conversão: " + e.getMessage());
         }
-        
-        BigDecimal total = transactions.stream()
-                .map(Transaction::getOriginalAmount)
-                .filter(amount -> amount != null)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        
-        return total.divide(BigDecimal.valueOf(transactions.size()), 2, BigDecimal.ROUND_HALF_UP);
     }
 } 

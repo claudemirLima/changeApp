@@ -19,10 +19,6 @@ public class TransactionRequest {
     @NotNull(message = "Tipo de transação é obrigatório")
     private TransactionType type;
     
-    @NotNull(message = "Valor original é obrigatório")
-    @DecimalMin(value = "0.01", message = "Valor original deve ser pelo menos 0.01")
-    private BigDecimal originalAmount;
-    
     @NotBlank(message = "Moeda de origem é obrigatória")
     @Size(min = 2, max = 10, message = "Moeda de origem deve ter entre 2 e 10 caracteres")
     private String fromCurrencyPrefix;
@@ -34,6 +30,10 @@ public class TransactionRequest {
     @NotNull(message = "Taxa de câmbio é obrigatória")
     @DecimalMin(value = "0.0001", message = "Taxa de câmbio deve ser pelo menos 0.0001")
     private BigDecimal exchangeRate;
+    
+    // Quantidades
+    private Integer quantityProduct;
+    private Float quantityCurrency;
     
     // Para EXCHANGE
     private Long fromProductId;           // opcional

@@ -6,8 +6,10 @@ import com.exchange.domain.entity.Currency;
 import com.exchange.domain.entity.ExchangeRate;
 import com.exchange.domain.enums.TransactionStatus;
 import com.exchange.service.ExchangeRateService;
+import com.exchange.service.ProductApiService;
 import com.exchange.service.RiskAnalysisService;
 import com.exchange.service.impl.RiskAnalysisServiceImpl;
+import com.exchange.util.ConversionCalculator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -26,8 +28,20 @@ public class StandardConversionStrategy implements ConversionStrategy {
     @Autowired
     private RiskAnalysisServiceImpl riskAnalysisService;
     
+    @Autowired
+    private ProductApiService productApiService;
+    
+    @Autowired
+    private ConversionCalculator conversionCalculator;
+    
     @Override
     public ConversionResponse convert(ConversionRequest request) {
+        // Buscar informações do reino
+        var kingdomInfo = productApiService.getKingdomInfo(request.getKingdomId());
+        if (kingdomInfo == null) {
+            return createErrorResponse("Reino não encontrado: " + request.getKingdomId());
+        }
+        
         // Buscar taxa de câmbio
         ExchangeRate exchangeRate = exchangeRateService.getActiveRate(
             request.getFromCurrencyCode(), 
@@ -38,14 +52,13 @@ public class StandardConversionStrategy implements ConversionStrategy {
             return createErrorResponse("Taxa de câmbio não encontrada para o período solicitado");
         }
         
-        // Calcular conversão
-        BigDecimal convertedAmount = request.getAmount()
-            .multiply(exchangeRate.getRate())
-            .setScale(2, RoundingMode.HALF_UP);
+        // Calcular conversão usando o utilitário
+        BigDecimal originalQuantity = BigDecimal.valueOf(request.getQuantityCurrency());
+        BigDecimal convertedAmount = conversionCalculator.calculateCurrencyConversion(
+            originalQuantity, exchangeRate, kingdomInfo);
         
         // Criar response básico
         ConversionResponse response = new ConversionResponse(
-            request.getAmount(),
             convertedAmount,
             exchangeRate.getRate(),
             request.getFromCurrencyCode(),
@@ -60,18 +73,11 @@ public class StandardConversionStrategy implements ConversionStrategy {
     
     @Override
     public boolean supports(ConversionRequest request) {
-        // Estratégia padrão suporta todas as conversões básicas
+        // Estratégia padrão suporta apenas conversões de moeda
         // (sem produto específico)
         return request.getProductId() == null || Long.valueOf(0).equals(request.getProductId());
     }
-    
-    @Override
-    public int getPriority() {
-        return 100; // Prioridade baixa - usado como fallback
-    }
-    
 
-    
     private ConversionResponse createErrorResponse(String reason) {
         ConversionResponse response = new ConversionResponse();
         response.setStatus(TransactionStatus.NOT_APPROVED);

@@ -118,49 +118,7 @@ public class KingdomController {
         
         return ResponseEntity.ok(response);
     }
-    
-    /**
-     * Listar reinos proprietários
-     */
-    @GetMapping("/owners")
-    @Operation(summary = "Listar reinos proprietários", description = "Retorna todos os reinos proprietários")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Lista de reinos proprietários retornada com sucesso")
-    })
-    public ResponseEntity<List<KingdomResponse>> getOwnerKingdoms() {
-        
-        List<Kingdom> kingdoms = kingdomService.getOwnerKingdoms();
-        List<KingdomResponse> response = KingdomMapper.kingdomListToKingdomResponseList(kingdoms);
-        
-        return ResponseEntity.ok(response);
-    }
-    
-    /**
-     * Listar reinos por qualidade
-     */
-    @GetMapping("/quality/{quality}")
-    @Operation(summary = "Listar reinos por qualidade", description = "Retorna reinos com qualidade específica (high/low)")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Lista de reinos retornada com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Qualidade inválida")
-    })
-    public ResponseEntity<List<KingdomResponse>> getKingdomsByQuality(
-            @Parameter(description = "Qualidade (high/low)") @PathVariable String quality) {
-        
-        List<Kingdom> kingdoms;
-        if ("high".equalsIgnoreCase(quality)) {
-            kingdoms = kingdomService.getHighQualityKingdoms();
-        } else if ("low".equalsIgnoreCase(quality)) {
-            kingdoms = kingdomService.getLowQualityKingdoms();
-        } else {
-            return ResponseEntity.badRequest().build();
-        }
-        
-        List<KingdomResponse> response = KingdomMapper.kingdomListToKingdomResponseList(kingdoms);
-        
-        return ResponseEntity.ok(response);
-    }
-    
+
     /**
      * Atualizar reino
      */
@@ -234,33 +192,5 @@ public class KingdomController {
         
         kingdomService.deleteKingdom(id);
         return ResponseEntity.noContent().build();
-    }
-    
-    /**
-     * Contar reinos ativos
-     */
-    @GetMapping("/count/active")
-    @Operation(summary = "Contar reinos ativos", description = "Retorna o número de reinos ativos")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Contagem retornada com sucesso")
-    })
-    public ResponseEntity<Long> countActiveKingdoms() {
-        
-        long count = kingdomService.countActiveKingdoms();
-        return ResponseEntity.ok(count);
-    }
-    
-    /**
-     * Contar reinos proprietários
-     */
-    @GetMapping("/count/owners")
-    @Operation(summary = "Contar reinos proprietários", description = "Retorna o número de reinos proprietários")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Contagem retornada com sucesso")
-    })
-    public ResponseEntity<Long> countOwnerKingdoms() {
-        
-        long count = kingdomService.countOwnerKingdoms();
-        return ResponseEntity.ok(count);
     }
 } 

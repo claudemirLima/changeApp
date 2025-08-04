@@ -340,9 +340,7 @@ public class ExchangeRateController {
         exchangeRateService.deactivateRate(fromCurrency, toCurrency);
         return ResponseEntity.noContent().build();
     }
-    
-    // ===== MÉTODOS UTILITÁRIOS =====
-    
+
     /**
      * Cria uma resposta de erro padronizada
      */

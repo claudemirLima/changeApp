@@ -41,6 +41,11 @@ logging:
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
     org.flywaydb: INFO
 
+# Configurações da API de Produtos
+app:
+  product-api:
+    base-url: http://localhost:8083/
+
 # OpenAPI/Swagger Configuration
 springdoc:
   api-docs:
@@ -49,7 +54,7 @@ springdoc:
     path: /swagger-ui.html
     operations-sorter: method
     tags-sorter: alpha
-    doc-expansion: none
+    doc-expansion: none http://localhost:8083/api/v1/kingdoms/1
   packages-to-scan: com.exchange.controller
 
 ---
